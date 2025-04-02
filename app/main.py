@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from app.routers import payment
 
 app = FastAPI()
 
+app.include_router(payment.router)
+
 @app.get("/")
-def read_root():
-    return {"message": "Hello, FastAPI!"}
+def root():
+    return {"message": "FastAPI Payments API"}
