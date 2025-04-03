@@ -1,4 +1,5 @@
 from app.schemas.payment import PaymentCreate, PaymentResponse
+from fastapi import FastAPI, HTTPException
 
 class PaymentService:
     def __init__(self):
