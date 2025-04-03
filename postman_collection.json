@@ -1,0 +1,38 @@
+{
+    "info": {
+      "name": "FastAPI Test Collection",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Register User",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\"\n}"
+          },
+          "url": {
+            "raw": "http://localhost:8000/api/user/register"
+          }
+        }
+      },
+      {
+        "name": "Get User Info",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:8000/api/user/testuser"
+          }
+        }
+      }
+    ]
+  }
+  
