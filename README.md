@@ -7,7 +7,12 @@ git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
 ```
 # 실행
 ```bash
-uvicorn app.main:app
+uvicorn app.main:app --reload
+```
+
+# 테스트
+```bash
+newman run tests/api-collection.postman.json -e tests/dev-environment.postman.json
 ```
 
 Swagger UI
