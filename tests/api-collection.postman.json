@@ -1,38 +1,63 @@
 {
-    "info": {
-      "name": "FastAPI Test Collection",
-      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-    },
-    "item": [
-      {
-        "name": "Register User",
-        "request": {
-          "method": "POST",
-          "header": [
-            {
-              "key": "Content-Type",
-              "value": "application/json"
-            }
-          ],
-          "body": {
-            "mode": "raw",
-            "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\"\n}"
-          },
-          "url": {
-            "raw": "http://localhost:8000/api/user/register"
-          }
-        }
-      },
-      {
-        "name": "Get User Info",
-        "request": {
-          "method": "GET",
-          "header": [],
-          "url": {
-            "raw": "http://localhost:8000/api/user/testuser"
-          }
+  "info": {
+    "name": "FastAPI Payment API Collection",
+    "_postman_id": "a1b2c3d4-5678-90ef-ghij-1234567890ab",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - 결제 생성",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 10000,\n  \"method\": \"kakaopay\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments"]
         }
       }
-    ]
-  }
-  
+    },
+    {
+      "name": "02 - 결제 상세 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/payments/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments", "1"]
+        }
+      }
+    },
+    {
+      "name": "03 - 결제 취소",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/payments/1/cancel",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments", "1", "cancel"]
+        }
+      }
+    },
+    {
+      "name": "04 - 결제 승인",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/payments/1/approve",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments", "1", "approve"]
+        }
+      }
+    }
+  ]
+}
