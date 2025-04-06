@@ -15,6 +15,12 @@ uvicorn app.main:app --reload
 newman run tests/api-collection.postman.json -e tests/dev-environment.postman.json
 ```
 
+# 이미지 빌드 + 컨테이너 실행
+```bash
+docker build -t fastapi-demo .
+docker run -d -p 8000:8000 --env-file .env fastapi-demo
+```
+
 Swagger UI
 
 ```bash
