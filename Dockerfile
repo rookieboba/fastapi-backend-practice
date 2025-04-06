@@ -1,6 +1,12 @@
 # 베이스 이미지: Python + 빌드도구 설치 가능한 Debian 기반
 FROM python:3.11-slim
 
+# 이미지 메타데이터
+LABEL maintainer="rookieboba <terranbin@gmail.com>" \
+      version="1.0" \
+      description="FastAPI backend with Docker, Newman, and integrated API test environment."
+
+
 # 시스템 패키지 설치
 RUN apt-get update && apt-get install -y \
     git \
