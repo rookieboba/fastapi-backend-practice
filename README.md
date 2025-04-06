@@ -9,6 +9,7 @@ git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
 
 # 이미지 빌드 + 컨테이너 실행
 ```bash
+cd fastapi-backend-practice/
 docker build -t fastapi-demo .
 docker rm -f $(docker ps -q --filter "publish=8000")
 docker run -d -p 8000:8000 --env-file tests/.env fastapi-demo
