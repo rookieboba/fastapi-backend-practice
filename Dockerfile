@@ -1,65 +1,66 @@
-# -----------------------------------------
-# Base: Python 3.11 on Debian Slim
-# -----------------------------------------
+# Base image: Python 3.11 on Debian Slim
 FROM python:3.11-slim
 
-# -----------------------------------------
-#  Metadata
-# -----------------------------------------
+# Metadata
 LABEL maintainer="rookieboba <terranbin@gmail.com>" \
       version="ver 25.04.06" \
-      description="FastAPI backend with newman, docker cli, and API test automation environment."
+      description="FastAPI backend with Docker CLI and newman test environment"
 
-# -----------------------------------------
-#  System Dependencies
-# -----------------------------------------
-RUN apt-get update -o Acquire::Check-Valid-Until=false && \
+# Avoid APT release timestamp errors
+RUN echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99ignore-release-date
+
+# Install basic time-related packages first
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        git \
+        tzdata \
+        ntp && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install tools required to add Docker repository
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         curl \
         gnupg \
+        lsb-release && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Add Docker APT repository
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+    > /etc/apt/sources.list.d/docker.list
+
+# Install core system packages including Docker CLI
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git \
         ca-certificates \
-        lsb-release \
         apt-transport-https \
         software-properties-common \
         build-essential \
-        tzdata \
-        ntp \
         docker-ce-cli \
         docker-compose-plugin && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# -----------------------------------------
-# Node.js & Newman 설치
-# -----------------------------------------
+# Install Node.js and newman
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g newman && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# -----------------------------------------
-# 작업 디렉토리 설정
-# -----------------------------------------
+# Set working directory
 WORKDIR /app
 
-# -----------------------------------------
-# Python 패키지 설치
-# -----------------------------------------
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir "pydantic[email]" && \
     pip install --no-cache-dir -r requirements.txt
 
-# -----------------------------------------
-# 앱 소스 코드 복사
-# -----------------------------------------
+# Copy project files
 COPY . .
 
-# -----------------------------------------
-# 포트 오픈
-# -----------------------------------------
+# Expose FastAPI default port
 EXPOSE 8000
 
-# -----------------------------------------
-# FastAPI 서버 실행
-# -----------------------------------------
+# Start FastAPI server
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
