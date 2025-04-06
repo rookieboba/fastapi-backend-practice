@@ -17,7 +17,8 @@ docker ps
 
 # 테스트
 ```bash
-docker exec -it {containerID} newman run /app/tests/api-collection.postman.json -e /app/tests/dev-environment.postman.json
+docker exec -it {containerID} /bin/bash
+newman run /app/tests/api-collection.postman.json -e /app/tests/dev-environment.postman.json
 ```
 
 
