@@ -11,7 +11,7 @@ git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
 ```bash
 docker build -t fastapi-demo fastapi-backend-practice/
 cd fastapi-backend-practice/
-docker run -d -p 8000:8000 --env-file .env fastapi-demo
+docker run -d -p 8000:8000 --env-file tests/.env fastapi-demo
 ```
 
 # 테스트
