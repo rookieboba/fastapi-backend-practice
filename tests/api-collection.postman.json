@@ -10,7 +10,10 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -18,10 +21,29 @@
         },
         "url": {
           "raw": "{{baseUrl}}/payments",
-          "host": ["{{baseUrl}}"],
-          "path": ["payments"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments"
+          ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"결제 생성 성공\", function () {",
+              "    pm.response.to.have.status(201);",
+              "    const res = pm.response.json();",
+              "    pm.expect(res).to.have.property(\"payment_id\");",
+              "});"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "02 - 결제 상세 조회",
@@ -30,10 +52,31 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/payments/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["payments", "1"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments",
+            "1"
+          ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"결제 상세 조회 성공\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    const res = pm.response.json();",
+              "    pm.expect(res).to.have.property(\"id\");",
+              "    pm.expect(res).to.have.property(\"amount\");",
+              "});"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "03 - 결제 취소",
@@ -42,10 +85,31 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/payments/1/cancel",
-          "host": ["{{baseUrl}}"],
-          "path": ["payments", "1", "cancel"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments",
+            "1",
+            "cancel"
+          ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"결제 취소 성공\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    const res = pm.response.json();",
+              "    pm.expect(res.status).to.eql(\"canceled\");",
+              "});"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "04 - 결제 승인",
@@ -54,10 +118,31 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/payments/1/approve",
-          "host": ["{{baseUrl}}"],
-          "path": ["payments", "1", "approve"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments",
+            "1",
+            "approve"
+          ]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"결제 승인 성공\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    const res = pm.response.json();",
+              "    pm.expect(res.status).to.eql(\"approved\");",
+              "});"
+            ]
+          }
+        }
+      ]
     }
   ]
 }
