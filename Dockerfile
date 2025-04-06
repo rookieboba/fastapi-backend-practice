@@ -1,47 +1,65 @@
-# Python 3.11 기반 이미지 사용
+# -----------------------------------------
+# Base: Python 3.11 on Debian Slim
+# -----------------------------------------
 FROM python:3.11-slim
 
-# 이미지 메타 정보
-LABEL maintainer="rookieboba <terranbin@gmail.com>"
-LABEL version="ver 25.04.06"
-LABEL description="FastAPI + Newman + Docker CLI 환경 통합 이미지"
+# -----------------------------------------
+#  Metadata
+# -----------------------------------------
+LABEL maintainer="rookieboba <terranbin@gmail.com>" \
+      version="ver 25.04.06" \
+      description="FastAPI backend with newman, docker cli, and API test automation environment."
 
-# 시스템 패키지 설치 (시간 동기화용 패키지 포함)
-RUN apt-get update && \
-    apt-get install -y \
-    git \
-    curl \
-    gnupg \
-    lsb-release \
-    ca-certificates \
-    apt-transport-https \
-    software-properties-common \
-    build-essential \
-    ntp \
-    tzdata \
-    docker-ce-cli \
-    docker-compose-plugin && \
-    apt-get clean
+# -----------------------------------------
+#  System Dependencies
+# -----------------------------------------
+RUN apt-get update -o Acquire::Check-Valid-Until=false && \
+    apt-get install -y --no-install-recommends \
+        git \
+        curl \
+        gnupg \
+        ca-certificates \
+        lsb-release \
+        apt-transport-https \
+        software-properties-common \
+        build-essential \
+        tzdata \
+        ntp \
+        docker-ce-cli \
+        docker-compose-plugin && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Node.js + newman 설치
+# -----------------------------------------
+# Node.js & Newman 설치
+# -----------------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g newman && \
-    apt-get clean
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# -----------------------------------------
 # 작업 디렉토리 설정
+# -----------------------------------------
 WORKDIR /app
 
-# requirements 설치
+# -----------------------------------------
+# Python 패키지 설치
+# -----------------------------------------
 COPY requirements.txt .
-RUN pip install --no-cache-dir pydantic[email] && \
+RUN pip install --no-cache-dir "pydantic[email]" && \
     pip install --no-cache-dir -r requirements.txt
 
-# 소스 복사
+# -----------------------------------------
+# 앱 소스 코드 복사
+# -----------------------------------------
 COPY . .
 
-# 포트 노출
+# -----------------------------------------
+# 포트 오픈
+# -----------------------------------------
 EXPOSE 8000
 
-# FastAPI 앱 실행
+# -----------------------------------------
+# FastAPI 서버 실행
+# -----------------------------------------
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
