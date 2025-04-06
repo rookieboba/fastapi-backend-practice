@@ -7,16 +7,17 @@ PostMan 테스트 (JSON) 를 위한 개발 진행
 git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
 ```
 
-# 테스트
-```bash
-newman run tests/api-collection.postman.json -e tests/dev-environment.postman.json
-```
-
 # 이미지 빌드 + 컨테이너 실행
 ```bash
 docker build -t fastapi-demo .
 docker run -d -p 8000:8000 --env-file .env fastapi-demo
 ```
+
+# 테스트
+```bash
+newman run tests/api-collection.postman.json -e tests/dev-environment.postman.json
+```
+
 
 Swagger UI
 
