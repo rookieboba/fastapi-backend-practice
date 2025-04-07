@@ -19,7 +19,8 @@ make run-dev
 make run-dev     # 개발 서버 실행
 make test        # Pytest 실행
 make newman      # API 테스트 실행 (Postman 기반)
-make down        # 전체 종료```
+make down        # 전체 종료
+```
 
 # 테스트
 
