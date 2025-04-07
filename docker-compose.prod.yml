@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-prod
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+    volumes:
+      - db-data:/data # 운영용 SQLite 또는 외부 DB 경로 마운트
+    command: [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000" ]
+
+volumes:
+  db-data:

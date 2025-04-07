@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: fastapi-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app # 코드 핫리로드용
+      - db-data:/data # SQLite db 파일 마운트
+    entrypoint: [ "/app/docker-entrypoint.sh" ]
+    command: [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+
+volumes:
+  db-data:
