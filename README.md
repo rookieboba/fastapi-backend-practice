@@ -18,12 +18,12 @@ docker exec -it {containerID} /bin/bash
 
 # 개발 환경
 ```bash
-docker compose -f docker-compose.dev.yml up --build
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
 # 운영 환경
 ```bash
-docker compose -f docker-compose.prod.yml up --build -d
+docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 
