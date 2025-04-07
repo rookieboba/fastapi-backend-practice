@@ -19,11 +19,6 @@ docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 
-# 접속
-```bash
-docker exec -it 25870d79a07c /bin/bash
-```
-
 # DB 들어가기
 ```bash
 sqlite3 /app/sqlite3/your_database_file.db
