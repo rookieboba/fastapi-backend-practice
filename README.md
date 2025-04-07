@@ -9,13 +9,25 @@ git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
 
 # 개발 환경
 ```bash
-# 코드 변경 시 자동 반영
-docker-compose -f docker-compose.dev.yml up --build
+git clone https://github.com/your-org/fastapi-backend-practice.git
+cd fastapi-backend-practice
+make run-dev
 ```
 
 # 운영 환경
 ```bash
-docker-compose -f docker-compose.prod.yml up --build -d
+make run-prod
+```
+
+# 테스트
+
+1. pytest
+```bash
+make test
+```
+2. newman
+```bash
+make newman
 ```
 
 
