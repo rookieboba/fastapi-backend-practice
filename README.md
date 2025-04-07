@@ -1,7 +1,7 @@
 # fastapi-backend-practice
-FastAPI 기반 백엔드 프로젝트 연습 
-RESTful API부터 JWT 인증까지 실습
-PostMan 테스트 (JSON) 를 위한 개발
+FastAPI 기반의 백엔드 프로젝트
+사용자(User) 정보를 SQLite에 저장하고 
+CRUD 및 자동화 테스트(Newman)를 수행
 
 ```bash
 git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
