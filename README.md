@@ -21,8 +21,7 @@ docker-compose -f docker-compose.prod.yml up --build -d
 
 # DB 들어가기
 ```bash
-sqlite3 /app/sqlite3/your_database_file.db
-
+sqlite3 /data/db.sqlite3
 sqlite> SELECT * FROM users;
 id  email              password
 --  -----------------  --------
