@@ -16,9 +16,16 @@ docker ps
 docker exec -it {containerID} /bin/bash
 ```
 
+# 운영 환경
+```bash
+docker compose -f docker-compose.prod.yml up --build -d
+```
+
+
 # 테스트
 ```bash
-newman run /app/tests/api-collection.postman.json -e /app/tests/dev-environment.postman.json
+docker run --rm -v $(pwd)/tests:/etc/newman postman/newman \
+  run api-collection.postman.json -e dev-environment.postman.json
 ```
 
 # DB 들어가기
