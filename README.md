@@ -24,6 +24,12 @@ newman run /app/tests/api-collection.postman.json -e /app/tests/dev-environment.
 # DB 들어가기
 ```bash
 sqlite3 /app/sqlite3/your_database_file.db
+
+sqlite> SELECT * FROM users;
+id  email              password
+--  -----------------  --------
+1   test1@example.com  1234    
+2   test2@example.com  abcd    
 ```
 
 Swagger UI
