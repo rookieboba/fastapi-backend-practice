@@ -9,6 +9,7 @@ git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
 
 # 개발 환경
 ```bash
+# 코드 변경 시 자동 반영
 docker-compose -f docker-compose.dev.yml up --build
 ```
 
