@@ -15,7 +15,8 @@ down:
 
 # pytest 실행 (커버리지 포함)
 test:
-	$(DOCKER_COMPOSE) exec fastapi-dev pytest --cov=app tests/
+	$(DOCKER_COMPOSE) exec web /bin/bash -c "pytest --cov=app tests/"
+
 
 # newman 테스트 실행 (Postman 기반 API 시나리오)
 newman:
