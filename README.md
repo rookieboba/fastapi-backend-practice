@@ -19,10 +19,9 @@ docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 
-# 테스트
+# 접속
 ```bash
-docker run --rm -v $(pwd)/tests:/etc/newman postman/newman \
-  run api-collection.postman.json -e dev-environment.postman.json
+docker exec -it 25870d79a07c /bin/bash
 ```
 
 # DB 들어가기
