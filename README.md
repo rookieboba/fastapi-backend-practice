@@ -14,9 +14,12 @@ cd fastapi-backend-practice
 make run-dev
 ```
 
-# 운영 환경
+# MakeFile
 ```bash
-make run-prod
+make run-dev     # 개발 서버 실행
+make test        # Pytest 실행
+make newman      # API 테스트 실행 (Postman 기반)
+make down        # 전체 종료
 ```
 
 # 테스트
