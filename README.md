@@ -7,13 +7,26 @@ CRUD 및 자동화 테스트(Newman)를 수행
 git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
 ```
 
-# 이미지 빌드 + 컨테이너 실행
+#  Docker Compose v2 (Rocky)
 ```bash
-cd fastapi-backend-practice/
-docker build -t fastapi-demo .
-docker run -d -p 8000:8000 --env-file tests/.env fastapi-demo
-docker ps
-docker exec -it {containerID} /bin/bash
+# Docker Engine 설치
+sudo dnf remove -y podman buildah
+sudo dnf install -y dnf-plugins-core
+sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+
+# Docker 데몬 실행
+sudo systemctl enable --now docker
+
+# Docker Compose v2 설치
+mkdir -p ~/.docker/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-linux-x86_64 \
+  -o ~/.docker/cli-plugins/docker-compose
+chmod +x ~/.docker/cli-plugins/docker-compose
+
+# 확인
+docker compose version
+
 ```
 
 # 개발 환경
