@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy the application code
 COPY . .
 
+# Run the SQL file to initialize the database (this assumes the file is in /app/sqlite3)
+RUN sqlite3 /app/sqlite3/your_database_file.db < /app/sqlite3/01_create_users_table.sql
+
 # Expose port for FastAPI
 EXPOSE 8000
 
