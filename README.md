@@ -13,14 +13,18 @@ cd fastapi-backend-practice/
 docker build -t fastapi-demo .
 docker run -d -p 8000:8000 --env-file tests/.env fastapi-demo
 docker ps
+docker exec -it {containerID} /bin/bash
 ```
 
 # 테스트
 ```bash
-docker exec -it {containerID} /bin/bash
 newman run /app/tests/api-collection.postman.json -e /app/tests/dev-environment.postman.json
 ```
 
+# DB 들어가기
+```bash
+sqlite3
+```
 
 Swagger UI
 
