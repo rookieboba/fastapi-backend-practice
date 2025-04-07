@@ -3,8 +3,8 @@ FROM python:3.11-slim
 
 # Metadata
 LABEL maintainer="rookieboba <terranbin@gmail.com>" \
-      version="ver 25.04.07" \
-      description="FastAPI backend with Docker CLI and newman test environment"
+    version="ver 25.04.07" \
+    description="FastAPI backend with Docker CLI and newman test environment"
 
 # Prevent APT release timestamp issues
 RUN echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99ignore-release-date
@@ -12,16 +12,16 @@ RUN echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99ignore-re
 # Install timezone & NTP packages (non-interactive)
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get install -y --no-install-recommends \
-        tzdata \
-        ntp && \
+    tzdata \
+    ntp && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install tools for Docker APT repository
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        curl \
-        gnupg \
-        lsb-release && \
+    curl \
+    gnupg \
+    lsb-release && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Add Docker APT repository
@@ -32,13 +32,13 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
 # Install Docker CLI, compose plugin, and development tools
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        git \
-        ca-certificates \
-        apt-transport-https \
-        software-properties-common \
-        build-essential \
-        docker-ce-cli \
-        docker-compose-plugin && \
+    git \
+    ca-certificates \
+    apt-transport-https \
+    software-properties-common \
+    build-essential \
+    docker-ce-cli \
+    docker-compose-plugin && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20 and Newman (global)
@@ -53,6 +53,9 @@ WORKDIR /app
 # Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Run the SQL file to initialize the database (this assumes the file is in /app/sqlite3)
+RUN sqlite3 /app/sqlite3/your_database_file.db < /app/sqlite3/01_create_users_table.sql
 
 # Copy application code
 COPY . .
