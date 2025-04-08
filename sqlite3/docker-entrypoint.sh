@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-DB_FILE="/data/db.sqlite3"
-SQL_DIR="/app/sqlite3"
+DB_FILE="./data/db.sqlite3"
+SQL_DIR="./app/sqlite3"
 
 # 1. DB가 없을 경우에만 초기화
 if [ ! -f "$DB_FILE" ]; then
