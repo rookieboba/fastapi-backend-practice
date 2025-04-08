@@ -13,7 +13,7 @@ if [ ! -f "$DB_FILE" ]; then
         sqlite3 "$DB_FILE" < "$sql_file"
     done
 
-    echo "[INFO] DB 초기화 완료"
+    # echo "[INFO] DB 초기화 완료"
 else
     echo "[INFO] 기존 DB가 존재하므로 초기화 생략"
 fi
