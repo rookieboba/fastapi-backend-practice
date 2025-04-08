@@ -31,6 +31,11 @@ test-cov:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		env PYTHONPATH=/app pytest --cov=app --cov-report=html tests/
 
+# 커버리지 관련 파일 삭제
+clean-cov:
+	rm -rf .coverage htmlcov .pytest_cache
+	@echo "[INFO] 커버리지 리포트 및 캐시 삭제 완료"
+	
 # Postman 기반 newman 테스트 실행 (web과 동일 네트워크)
 newman:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm newman
