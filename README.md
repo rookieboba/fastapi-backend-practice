@@ -8,6 +8,7 @@ CRUD 및 자동화 테스트(Newman)를 수행
 git clone https://github.com/your-org/fastapi-backend-practice.git
 cd fastapi-backend-practice
 make run-dev
+docker exec -it fastapi-dev /bin/bash
 ```
 
 # MakeFile
