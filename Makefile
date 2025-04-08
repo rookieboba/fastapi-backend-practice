@@ -26,6 +26,10 @@ restart-prod: down-prod run-prod
 test:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		env PYTHONPATH=/app pytest --cov=app --cov-report=$$(COV_REPORT) tests/
+# 결과 리포트를 htmlcov/index.html 로 생성. 브라우저 열기
+test-cov:
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
+		env PYTHONPATH=/app pytest --cov=app --cov-report=html tests/
 
 # Postman 기반 newman 테스트 실행 (web과 동일 네트워크)
 newman:
