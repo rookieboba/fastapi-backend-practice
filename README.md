@@ -3,10 +3,6 @@ FastAPI 기반의 백엔드 프로젝트
 사용자(User) 정보를 SQLite에 저장하고 
 CRUD 및 자동화 테스트(Newman)를 수행
 
-```bash
-git clone -b main https://github.com/rookieboba/fastapi-backend-practice/
-```
-
 # 개발 환경
 ```bash
 git clone https://github.com/your-org/fastapi-backend-practice.git
