@@ -22,8 +22,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 애플리케이션 복사
 COPY . .
 
-# 포트 오픈
-EXPOSE 8000
+# 엔트리포인트 권한 설정 및 등록
+RUN chmod +x /app/sqlite3/docker-entrypoint.sh
+ENTRYPOINT ["/app/sqlite3/docker-entrypoint.sh"]
 
-# 운영 실행 커맨드
+# 포트 오픈 및 애플리케이션 실행
+EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
