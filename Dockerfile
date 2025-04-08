@@ -1,22 +1,29 @@
-# 운영용 Dockerfile
+# 운영용 FastAPI Dockerfile
 FROM python:3.11-slim
 
 LABEL maintainer="rookieboba <terranbin@gmail.com>" \
-    version="ver 25.04.07" \
+    version="ver 25.04.08" \
     description="FastAPI backend for production"
 
-# Set working directory
+# 타임존 설정
+RUN apt-get update && \
+    apt-get install -y tzdata && \
+    ln -fs /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 작업 디렉토리 설정
 WORKDIR /app
 
-# Install Python dependencies
+# 의존성 설치
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all project files
+# 애플리케이션 복사
 COPY . .
 
-# Expose FastAPI port
+# 포트 오픈
 EXPOSE 8000
 
-# Run FastAPI without reload (prod)
+# 운영 실행 커맨드
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
