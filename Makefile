@@ -24,7 +24,8 @@ restart-prod: down-prod run-prod
 
 # pytest 실행 (커버리지 포함, run 방식으로 실행 후 자동 제거)
 test:
-	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web pytest --cov=app --cov-report=term-missing tests/
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
+		env PYTHONPATH=/app pytest --cov=app --cov-report=$$(COV_REPORT) tests/
 
 # Postman 기반 newman 테스트 실행 (web과 동일 네트워크)
 newman:
