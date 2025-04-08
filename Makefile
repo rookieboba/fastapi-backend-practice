@@ -1,26 +1,31 @@
-# Makefile for DOCKER COMPOSE?
 DOCKER_COMPOSE := $(shell command -v docker-compose > /dev/null 2>&1 && echo docker-compose || echo docker compose)
 
-# 개발 환경 실행 (hot reload 포함)
+# 개발 환경 실행
 run-dev:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up --build
 
-# 운영 환경 실행 (백그라운드)
+# 운영 환경 실행
 run-prod:
 	$(DOCKER_COMPOSE) -f docker-compose.prod.yml up -d --build
 
-# 모든 컨테이너 종료
-down:
-	$(DOCKER_COMPOSE) down
+# 개발 환경 종료
+down-dev:
+	-$(DOCKER_COMPOSE) -f docker-compose.dev.yml down
 
-# pytest 실행 (커버리지 포함)
+# 운영 환경 종료
+down-prod:
+	-$(DOCKER_COMPOSE) -f docker-compose.prod.yml down
+
+# 개발 환경 재시작
+restart-dev: down-dev run-dev
+
+# 운영 환경 재시작
+restart-prod: down-prod run-prod
+
+# pytest 실행 (커버리지 포함, run 방식으로 실행 후 자동 제거)
 test:
-	$(DOCKER_COMPOSE) exec web /bin/bash -c "pytest --cov=app tests/"
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web pytest --cov=app --cov-report=term-missing tests/
 
-
-# newman 테스트 실행 (Postman 기반 API 시나리오)
+# Postman 기반 newman 테스트 실행 (web과 동일 네트워크)
 newman:
-	docker run --rm -v $(PWD):/etc/newman postman/newman run \
-	  /etc/newman/tests/api-collection.postman.json \
-	  -e /etc/newman/tests/dev-environment.postman.json
-
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm newman
