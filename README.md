@@ -13,7 +13,7 @@ RESTful API 개발, DB 연동, 단위 테스트 및 자동화 테스트(Newman)�
 
 # 개발 환경
 ```bash
-git clone https://github.com/your-org/fastapi-backend-practice.git
+git clone https://github.com/rookieboba/fastapi-backend-practice.git
 cd fastapi-backend-practice
 make run-dev
 ```
