@@ -1,60 +1,34 @@
 # fastapi-backend-practice
-FastAPI 기반의 백엔드 프로젝트
-사용자(User) 정보를 SQLite에 저장하고 
-CRUD 및 자동화 테스트(Newman)를 수행
+
+FastAPI + Docker 기반 백엔드 프로젝트 
+RESTful API 개발, DB 연동, 단위 테스트 및 자동화 테스트(Newman)까지 포함된 실전 지향 구조입니다.
+
+| 범주         | 기술                                           |
+|--------------|------------------------------------------------|
+| Backend      | FastAPI, Python 3.11                           |
+| Database     | SQLite3                                        |
+| DevOps       | Docker, Docker Compose, Makefile               |
+| Testing      | Pytest, Coverage, Postman, Newman              |
+| API 문서화   | Swagger UI, ReDoc                              |
 
 # 개발 환경
 ```bash
 git clone https://github.com/your-org/fastapi-backend-practice.git
 cd fastapi-backend-practice
 make run-dev
-docker exec -it fastapi-dev /bin/bash
 ```
 
 # MakeFile
 ```bash
-make run-dev     # 개발 서버 실행
-make test        # Pytest 실행
-make newman      # API 테스트 실행 (Postman 기반)
-make down        # 전체 종료
+make run-dev	# 개발 환경 실행 (hot reload)
+make run-prod	# 운영 환경 실행 (백그라운드)
+make down-dev	# 개발 환경 종료
+make down-prod	#운영 환경 종료
+make restart-dev	# 개발 환경 재시작
+make restart-prod	# 운영 환경 재시작
+make test #	단위 테스트 실행 (Pytest)
+make newman	# API 시나리오 테스트 (Postman 기반
 ```
 
-# 테스트
-
-1. pytest
-```bash
-make test
-```
-2. newman
-```bash
-make newman
-```
-
-
-# DB 들어가기
-```bash
-sqlite3 /data/db.sqlite3
-sqlite> SELECT * FROM users;
-id  email              password
---  -----------------  --------
-1   test1@example.com  1234    
-2   test2@example.com  abcd    
-```
-
-Swagger UI
-
-```bash
-http://127.0.0.1:8000/docs
-```
-
-![image](https://github.com/user-attachments/assets/310be3a7-d31b-4f5b-b035-0e4fff50a16f)
-
-
-
-ReDoc
-
-```bash
-http://127.0.0.1:8000/redoc
-```
-
-![image](https://github.com/user-attachments/assets/ea6ed652-64a7-425c-ba4f-9a4eadc6409a)
+기타
+CI/CD 연동을 위한 .github/workflows/test.yml 추가 예정
