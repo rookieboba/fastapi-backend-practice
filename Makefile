@@ -39,3 +39,8 @@ newman:
 reset-db:
 	rm -f ./data/db.sqlite3
 	@echo "[INFO] SQLite DB 초기화 완료 (db.sqlite3 삭제됨)"
+
+# DB 초기화 (테이블 생성 및 초기 데이터 삽입)
+init-db:
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml exec web \
+		python scripts/init_db.py
