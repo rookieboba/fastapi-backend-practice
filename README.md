@@ -18,7 +18,7 @@ cd fastapi-backend-practice
 make run-dev
 ```
 
-# MakeFile
+# MakeFile 읽기
 ```bash
 make run-dev	# 개발 환경 실행 (hot reload)
 make run-prod	# 운영 환경 실행 (백그라운드)
@@ -31,4 +31,5 @@ make newman	# API 시나리오 테스트 (Postman 기반
 ```
 
 기타
-CI/CD 연동을 위한 .github/workflows/test.yml 추가 예정
+- JenkinsFile 추가 예정
+- CI/CD 연동을 위한 .github/workflows/test.yml 추가 예정
