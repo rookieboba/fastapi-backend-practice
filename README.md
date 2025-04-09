@@ -14,11 +14,21 @@ RESTful API 개발, DB 연동, 단위 테스트 및 자동화 테스트(Newman)�
 # 개발 환경
 ```bash
 git clone https://github.com/rookieboba/fastapi-backend-practice.git
+```
+
+# 시간 동기화 데몬 활성화 및 즉시 시간 동기화
+```bash
+sudo systemctl enable --now chronyd
+sudo chronyc makestep
+```
+
+# 빌드
+```bash
 cd fastapi-backend-practice
 make run-dev
 ```
 
-# MakeFile 읽기
+# MakeFile 명령어
 ```bash
 make run-dev	# 개발 환경 실행 (hot reload)
 make run-prod	# 운영 환경 실행 (백그라운드)
@@ -29,7 +39,3 @@ make restart-prod	# 운영 환경 재시작
 make test #	단위 테스트 실행 (Pytest)
 make newman	# API 시나리오 테스트 (Postman 기반
 ```
-
-기타
-- JenkinsFile 추가 예정
-- CI/CD 연동을 위한 .github/workflows/test.yml 추가 예정
