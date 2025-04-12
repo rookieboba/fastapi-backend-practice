@@ -1,0 +1,69 @@
+name: FastAPI Test & Notify
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REPO_URL: https://github.com/rookieboba/fastapi-backend-practice
+  REPO_NAME: rookieboba/fastapi-backend-practice
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run pytest
+      run: |
+        pytest --maxfail=1 --disable-warnings --cov=app tests/
+
+    - name: Notify Slack on success
+      if: success()
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+        --data "{
+          \"text\": \"Test success!\\nRepository: ${{ env.REPO_NAME }}\\nBranch: $GITHUB_REF_NAME\\nLink: ${{ env.REPO_URL }}/actions/runs/$GITHUB_RUN_ID (View details)\"
+        }" \
+        ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify Slack on failure
+      if: failure()
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+        --data "{
+          \"text\": \"Test failed.\\nRepository: ${{ env.REPO_NAME }}\\nBranch: $GITHUB_REF_NAME\\nLink: ${{ env.REPO_URL }}/actions/runs/$GITHUB_RUN_ID (View details)\"
+        }" \
+        ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Send email on failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: GitHub Actions - Test failed
+        to: terranbin@naver.com
+        from: GitHub Actions
+        body: |
+          GitHub Actions test failed.
+          Repository: ${{ env.REPO_NAME }}
+          Branch: $GITHUB_REF_NAME
+          Link: ${{ env.REPO_URL }}/actions/runs/$GITHUB_RUN_ID
+
