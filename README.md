@@ -1,6 +1,6 @@
-# fastapi-backend-practice
+# fastapi-bluegreen-deploy
 
-FastAPI + Docker 기반 백엔드 프로젝트  
+FastAPI 기반의 백엔드 서버를 Docker, Kubernetes 환경에서 배포
 RESTful API 개발, DB 연동, 단위 테스트 및 자동화 테스트(Newman)까지 포함된 실전 지향 구조입니다.
 
 | 범주         | 기술                                           |
