@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+      version: green
+  template:
+    metadata:
+      labels:
+        app: fastapi
+        version: green
+    spec:
+      volumes:
+        - name: db-volume
+          persistentVolumeClaim:
+            claimName: sqlite-pvc
+        - name: init-sql
+          configMap:
+            name: init-sql
+      initContainers:
+        - name: init-db
+          image: nouchka/sqlite3
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              cp /init/01_create_users_table.sql /mnt/db/ &&               sqlite3 /mnt/db/db.sqlite3 < /mnt/db/01_create_users_table.sql
+          volumeMounts:
+            - name: db-volume
+              mountPath: /mnt/db
+            - name: init-sql
+              mountPath: /init
+      containers:
+        - name: fastapi
+          image: sungbin/fastapi-app:v2
+          volumeMounts:
+            - name: db-volume
+              mountPath: /data
+          ports:
+            - containerPort: 8000
