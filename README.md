@@ -18,7 +18,7 @@ git clone https://github.com/rookieboba/fastapi-backend-practice.git
 
 # Deployment
 ```bash
-Blue-Green 이용
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 # 빌드
