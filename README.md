@@ -1,31 +1,51 @@
 # fastapi-backend-practice
 
-FastAPI + Docker 기반 백엔드 프로젝트 
+FastAPI + Docker 기반 백엔드 프로젝트  
 RESTful API 개발, DB 연동, 단위 테스트 및 자동화 테스트(Newman)까지 포함된 실전 지향 구조입니다.
 
 | 범주         | 기술                                           |
 |--------------|------------------------------------------------|
 | Backend      | FastAPI, Python 3.11                           |
-| Database     | SQLite3                                        |
-| DevOps       | Docker, Docker Compose, Makefile               |
+| Database     | SQLite3 (InitContainer 기반 초기화 포함)       |
+| DevOps       | Docker, Docker Compose, Makefile, Kubernetes   |
+| 배포 전략    | Blue/Green Deployment, InitContainer 활용       |
 | Testing      | Pytest, Coverage, Postman, Newman              |
 | API 문서화   | Swagger UI, ReDoc                              |
 
-# 개발 환경
+---
+
+## 🚀 개발 환경 실행
 ```bash
 git clone https://github.com/rookieboba/fastapi-backend-practice.git
-```
-
-# Deployment
-```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-# 빌드
-```bash
 cd fastapi-backend-practice
 make run-dev
 ```
+
+#  Docker 이미지 빌드 & 푸시
+```bash
+# 버전 1
+docker build -f Dockerfile.dev -t sungbin/fastapi-app:v1 .
+docker push sungbin/fastapi-app:v1
+
+# 버전 2
+docker build -f Dockerfile.dev -t sungbin/fastapi-app:v2 .
+docker push sungbin/fastapi-app:v2
+```
+
+# Kubernetes 배포 (Blue/Green + InitContainer)
+``` bash
+kubectl apply -f k8s/bluegreen-init/pvc.yaml
+kubectl apply -f k8s/bluegreen-init/configmap-init-sql.yaml
+kubectl apply -f k8s/bluegreen-init/blue-deployment.yaml
+kubectl apply -f k8s/bluegreen-init/service.yaml
+
+# 새로운 버전(green) 배포 + DB 초기화
+kubectl apply -f k8s/bluegreen-init/green-deployment.yaml
+
+# 서비스 전환: blue → green
+kubectl patch service fastapi-service -p '{"spec":{"selector":{"app":"fastapi","version":"green"}}}'
+```
+
 
 # MakeFile 명령어
 ```bash
