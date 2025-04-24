@@ -1,22 +1,22 @@
 # FastAPI Blue/Green Deployment Practice
 
-FastAPI 기반의 REST API 애플리케이션으로, Blue/Green 배포 전략과 CI/CD 자동화 파이프라인 구축을 중심으로 실습합니다.
+FastAPI 기반 REST API 애플리케이션을 Kubernetes 환경에서 Blue/Green 배포 전략으로 무중단 전환하며, CI/CD 자동화를 실습합니다.
 
 ---
 
-## 📌 주요 기술 스택
+## 🧑‍💻 개발자 관점 (Dev)
 
-| 범주       | 기술                                      |
-|------------|-------------------------------------------|
-| Web API    | FastAPI, Pydantic                         |
-| DB         | SQLite3 (InitContainer 초기화 방식 사용)  |
-| CI/CD      | GitHub Actions, Jenkins                   |
-| 배포       | Docker, Kubernetes                        |
-| 테스트     | Pytest, Postman, Newman                   |
+### ✅ 기술 스택
 
----
+| 분야     | 내용                      |
+|----------|---------------------------|
+| Web API  | FastAPI, Pydantic         |
+| Database | SQLite3 (`/data/db.sqlite3`) |
+| 테스트   | Pytest, Postman, Newman   |
+| 문서화   | Swagger, ReDoc            |
+| Dev Tool | Makefile, Docker Compose  |
 
-## 🔧 개발 환경 실행
+### 🔧 개발 환경 실행
 
 ```bash
 git clone https://github.com/rookieboba/fastapi-bluegreen-deploy.git
@@ -24,36 +24,67 @@ cd fastapi-bluegreen-deploy
 make run-dev
 ```
 
----
+> `make run-dev`는 `docker-compose.dev.yml`을 기반으로 FastAPI 앱을 실행합니다.
 
-## 🚀 배포 전략: Blue/Green Deployment
-
-1. 기존 버전(`v1`)을 Blue로 배포
-2. 새 버전(`v2`)을 Green으로 병렬 배포
-3. 트래픽 스위칭으로 무중단 업데이트 수행
+### 🧪 테스트
 
 ```bash
-# 사전 작업 (SQLite 데이터베이스를 위한 디렉토리를 모든 Worker 노드에 직접 생성)
+make test    # pytest 기반 단위 테스트
+make newman  # Postman 시나리오 기반 API 테스트 (newman)
+```
+
+---
+
+## 👷‍♂️ 인프라 엔지니어 관점 (Ops)
+
+### ⚙️ 기술 스택
+
+| 항목         | 내용                                               |
+|--------------|----------------------------------------------------|
+| Container    | Docker, DockerHub (`sungbin/fastapi-app`)         |
+| Orchestration | Kubernetes (v1.30+)                               |
+| 배포 전략     | Blue/Green Deployment                             |
+| 자동화 도구  | GitHub Actions, Jenkins                           |
+| DB 초기화     | InitContainer + ConfigMap + PVC                   |
+
+---
+
+## 🚀 배포 절차 (Blue → Green)
+
+### 🛠 사전 준비
+
+> 모든 **Worker Node**에 SQLite DB용 디렉토리를 수동 생성
+
+```bash
 sudo mkdir -p /mnt/data/sqlite
-sudo chmod 777 /mnt/data/sqlite  # 테스트 목적의 퍼미션, 운영 환경에서는 제한 필요
+sudo chmod 777 /mnt/data/sqlite
+```
 
-# Master node 배포
-# 1. ConfigMap 적용 (SQL 초기화용)
-kubectl apply -f k8s/configmap.yaml
+### 📦 배포 명령어 (Master Node 기준)
 
-# 2. Blue 버전 배포
-kubectl apply -f k8s/blue-deployment.yaml
+```bash
+# 1. 초기 SQL 설정 (ConfigMap)
+kubectl apply -f k8s/v1/configmap-init-sql.yaml
 
-# 3. Service 생성
-kubectl apply -f k8s/service.yaml
+# 2. PV/PVC 설정
+kubectl apply -f k8s/v1/sqlite-volume.yaml
 
-# 4.신규 버전 배포 
-kubectl apply -f k8s/green-deployment.yaml
+# 3. 초기 버전 배포 (v1, track=blue)
+kubectl apply -f k8s/v1/blue-deployment.yaml
 
-# 5. 서비스 트래픽 전환
-kubectl patch service fastapi-service -p '{"spec":{"selector":{"app":"fastapi", "version":"green"}}}'
+# 4. Service 생성
+kubectl apply -f k8s/v1/service.yaml
 
-# 확인
+# 5. 신규 버전 배포 (v2, track=green)
+kubectl apply -f k8s/v1/green-deployment.yaml
+
+# 6. 트래픽 전환 (Service Selector 변경)
+kubectl patch service fastapi-service -p '{"spec":{"selector":{"app":"fastapi", "track":"green"}}}'
+```
+
+### 🔍 상태 확인 명령어
+
+```bash
 kubectl get pods -o wide
 kubectl get svc
 kubectl get endpoints
@@ -61,54 +92,36 @@ kubectl get endpoints
 
 ---
 
-## 📂 Kubernetes 구성
+## 📂 Kubernetes 구성 파일
 
-| 파일명                           | 설명                                 |
+| 파일명                          | 설명                                 |
 |----------------------------------|--------------------------------------|
-| `blue-deployment.yaml`          | 기존 버전 배포 설정 (v1)             |
-| `green-deployment.yaml`         | 신규 버전 배포 설정 (v2)             |
-| `service.yaml`                  | 공통 서비스 정의                     |
-| `configmap-init-sql.yaml`       | 초기 SQL 데이터 삽입                 |
-| `pvc.yaml`                      | SQLite3용 영속 볼륨 설정             |
+| `blue-deployment.yaml`          | 기존 버전 (v1), `track: blue`        |
+| `green-deployment.yaml`         | 신규 버전 (v2), `track: green`       |
+| `service.yaml`                  | 공통 서비스 (Selector에 따라 전환)  |
+| `configmap-init-sql.yaml`       | 초기 SQL 실행용 ConfigMap            |
+| `sqlite-volume.yaml`            | PVC/PV 구성 (SQLite 파일 저장용)     |
 
 ---
 
-## ✅ GitHub Actions
+## ⚙️ GitHub Actions (CI/CD)
 
 `.github/workflows/fastapi-dev-pipeline.yml`  
-- 테스트 → 빌드 → 배포 파이프라인 구축  
-- main 브랜치 푸시 시 자동 실행
+- `main` 브랜치에 푸시 시 실행  
+- Pytest → Docker 빌드 → DockerHub 푸시 순으로 자동화 처리
 
 ---
 
-## 🧪 테스트
+## 💡 학습 포인트
 
-```bash
-make test    # 단위 테스트 (pytest)
-make newman  # API 시나리오 테스트 (Postman + Newman)
-```
-
----
-
-## 📁 기타 유틸리티
-
-| 디렉토리         | 설명                            |
-|------------------|---------------------------------|
-| `scripts/`       | DB 초기화 스크립트              |
-| `sqlite3/`        | SQL 스크립트 + entrypoint       |
-| `Jenkins/`       | Jenkins 배포 자동화 스크립트    |
+- Blue/Green 전략으로 무중단 배포 전환  
+- InitContainer로 DB 초기화 처리  
+- GitHub Actions + Jenkins 기반 자동화 구성  
+- Pod 상태, Endpoints 확인 등 실무 환경 대응 능력 배양
 
 ---
 
-## 💡 핵심 학습 포인트
-
-- Kubernetes 환경에서의 무중단 배포 실습
-- InitContainer를 통한 DB 초기화 방식
-- GitHub Actions 및 Jenkins를 활용한 자동화
-
----
-
-## 🔗 참고
+## 🔗 관련 링크
 
 - DockerHub: `docker.io/sungbin/fastapi-app:v1`, `v2`
-- GitHub Actions CI: `.github/workflows/`
+- GitHub Actions: `.github/workflows/`
