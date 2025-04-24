@@ -116,7 +116,7 @@ kubectl get endpoints
 
 - Blue/Green 전략으로 무중단 배포 전환  
 - InitContainer로 DB 초기화 처리  
-- GitHub Actions + Jenkins 기반 자동화 구성  
+- GitHub Actions + ArgoCD 기반 자동화 구성  
 - Pod 상태, Endpoints 확인 등 실무 환경 대응 능력 배양
 
 ---
