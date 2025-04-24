@@ -16,10 +16,9 @@ RESTful API 개발, DB 연동, 단위 테스트 및 자동화 테스트(Newman)�
 git clone https://github.com/rookieboba/fastapi-backend-practice.git
 ```
 
-# 시간 동기화 데몬 활성화 및 즉시 시간 동기화
+# Deployment
 ```bash
-sudo systemctl enable --now chronyd
-sudo chronyc makestep
+Blue-Green 이용
 ```
 
 # 빌드
