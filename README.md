@@ -37,7 +37,7 @@ make run-dev
 sudo mkdir -p /mnt/data/sqlite
 sudo chmod 777 /mnt/data/sqlite  # 테스트 목적의 퍼미션, 운영 환경에서는 제한 필요
 
-# 초기 배포
+# Master node 초기 배포
 kubectl apply -f k8s/blue-deployment.yaml
 kubectl apply -f k8s/service.yaml
 
