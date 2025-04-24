@@ -37,15 +37,26 @@ make run-dev
 sudo mkdir -p /mnt/data/sqlite
 sudo chmod 777 /mnt/data/sqlite  # 테스트 목적의 퍼미션, 운영 환경에서는 제한 필요
 
-# Master node 초기 배포
+# Master node 배포
+# 1. ConfigMap 적용 (SQL 초기화용)
+kubectl apply -f k8s/configmap.yaml
+
+# 2. Blue 버전 배포
 kubectl apply -f k8s/blue-deployment.yaml
+
+# 3. Service 생성
 kubectl apply -f k8s/service.yaml
 
-# 신규 버전 배포
+# 4.신규 버전 배포 
 kubectl apply -f k8s/green-deployment.yaml
 
-# 서비스 트래픽 전환
+# 5. 서비스 트래픽 전환
 kubectl patch service fastapi-service -p '{"spec":{"selector":{"app":"fastapi", "version":"green"}}}'
+
+# 확인
+kubectl get pods -o wide
+kubectl get svc
+kubectl get endpoints
 ```
 
 ---
