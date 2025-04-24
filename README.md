@@ -33,6 +33,10 @@ make run-dev
 3. 트래픽 스위칭으로 무중단 업데이트 수행
 
 ```bash
+# 사전 작업 (SQLite 데이터베이스를 위한 디렉토리를 모든 Worker 노드에 직접 생성)
+sudo mkdir -p /mnt/data/sqlite
+sudo chmod 777 /mnt/data/sqlite  # 테스트 목적의 퍼미션, 운영 환경에서는 제한 필요
+
 # 초기 배포
 kubectl apply -f k8s/blue-deployment.yaml
 kubectl apply -f k8s/service.yaml
