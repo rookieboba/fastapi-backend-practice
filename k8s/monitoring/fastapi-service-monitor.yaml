@@ -1,0 +1,12 @@
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: fastapi-service-monitor
+spec:
+  selector:
+    matchLabels:
+      app: fastapi
+  endpoints:
+  - port: http
+    interval: 30s
