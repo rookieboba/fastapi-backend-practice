@@ -10,9 +10,12 @@ run-dev:
 docker-dev:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up --build -d
 
-docker-push:
-	docker build -t terrnabin/fastapi_app:v1 .
-	docker push terrnabin/fastapi_app:v1
+docker-down:
+	${DOCKER_COMPOSE} -f docker-compose.dev.yml down
+
+#docker-push:
+#	docker build -t terrnabin/fastapi_app:v1 .
+#	docker push terrnabin/fastapi_app:v1
 
 test:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
