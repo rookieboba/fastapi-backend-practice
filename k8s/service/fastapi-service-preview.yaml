@@ -1,13 +1,13 @@
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: fastapi-service-preview
+  name: fastapi-preview
 spec:
+  type: NodePort   # <-- LoadBalancer 대신 NodePort
   selector:
     app: fastapi
+    track: canary
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-  type: ClusterIP
+    - port: 80
+      targetPort: 8000
+      nodePort: 30081    # 다른 포트로 지정
