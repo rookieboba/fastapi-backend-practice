@@ -31,17 +31,38 @@ test-cov:
 # Kubernetes
 # ===================
 
-deploy:
+first-deploy:
 	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
 	kubectl apply -k k8s/
 	kubectl get all
+	@echo "[INFO] First deployment completed."
 
-promote:
+deploy-all:
+	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
+	kubectl apply -k k8s/
+	kubectl get all
+	@echo "[INFO] Full deployment completed."
+
+deploy-dashboard:
+	kubectl apply -f k8s/argo/argo-rollouts-dashboard-install.yaml
+	@echo "[INFO] Argo Rollouts Dashboard installed from local file."
+
+rollout-promote:
 	kubectl argo rollouts promote fastapi-rollout
+	@echo "[INFO] Rollout promoted."
 
-dashboard:
-	kubectl -n argo-rollouts port-forward deployment/argo-rollouts-dashboard 3100:3100
+rollout-monitor:
+	kubectl argo rollouts get rollout fastapi-rollout --watch
 
+rollout-revision:
+	kubectl argo rollouts get rollout fastapi-rollout --revision
+
+port-all:
+	kubectl -n argo-rollouts port-forward deployment/argo-rollouts-dashboard $(PORT_ARGO_ROLLOUTS):3100 & \
+	kubectl -n argo port-forward svc/argo-workflows-server $(PORT_ARGO_WORKFLOWS):2746 & \
+	kubectl -n argocd port-forward svc/argocd-server $(PORT_ARGOCD):8080 & \
+	wait
+	@echo "[INFO] Port Forwarded: Rollouts Dashboard -> $(PORT_ARGO_ROLLOUTS), Workflows UI -> $(PORT_ARGO_WORKFLOWS), ArgoCD UI -> $(PORT_ARGOCD)"
 
 # ===================
 # 🔧 기타
@@ -53,7 +74,11 @@ clean:
 	kubectl delete -f k8s/argo/argo-rollouts-install.yaml || true
 	kubectl delete -f k8s/argo/argo-workflows-install.yaml || true
 	kubectl delete -f k8s/argo/argocd-install.yaml || true
+	@echo "[INFO] Clean completed."
 
 reset:
 	make clean
-	make first-deploy
+	make deploy-all
+	make deploy-dashboard
+	make port-all
+	@echo "[INFO] Reset and redeploy completed including dashboard installation and port forwarding."
