@@ -1,131 +1,95 @@
-# FastAPI Blue/Green Deployment Practice
+# FastAPI Blue/Green 배포 실습 (Production-ready)
 
-FastAPI 기반 REST API 애플리케이션을 개발하고,
-Kubernetes 환경에서 Blue/Green 배포 전략으로 실습
+FastAPI 기반 내부 API 서버를 GitOps 기반으로 운영하는 구조를 실습합니다.  
+실제 게임사에서 사용하는 방식처럼 CI/CD 자동화, Blue/Green 트래픽 전환, 무중단 PVC 구성, ArgoCD 배포 전략을 적용했습니다.
 
 ---
 
-## 🧑‍💻 개발자 관점 (Dev)
+## 🎯 목적
 
-### ✅ 기술 스택
+- 개발자의 Docker 이미지가 GitHub Actions를 통해 자동 배포됨
+- 운영자는 ArgoCD에서 배포 현황 모니터링 및 Service만으로 트래픽 전환
+- 무중단 PVC 환경을 기반으로, 버전 간 공존 + 롤백 가능한 구조 설계
 
-| 분야     | 내용                      |
-|----------|---------------------------|
-| Web API  | FastAPI, Pydantic         |
-| Database | SQLite3 (`/data/db.sqlite3`) |
-| 테스트   | Pytest, Postman, Newman   |
-| 문서화   | Swagger, ReDoc            |
-| Dev Tool | Makefile, Docker Compose  |
+---
 
-### 🔧 개발 환경 실행
+## 👨‍💻 개발자 로컬 실행 가이드
 
 ```bash
+# 1. GitHub에서 프로젝트 클론
 git clone https://github.com/rookieboba/fastapi-bluegreen-deploy.git
 cd fastapi-bluegreen-deploy
-make run-dev
+
+# 2. 가상환경 설정
+python -m venv venv
+source venv/bin/activate
+
+# 3. 개발 환경 실행
+make install  # requirements.txt 설치
+make run-dev  # uvicorn으로 FastAPI 실행
 ```
 
-> `make run-dev`는 `docker-compose.dev.yml`을 기반으로 FastAPI 앱을 실행합니다.
+기본 개발 포트는 `8000`이며, Swagger UI는 `/docs`, Health Check는 `/health` 엔드포인트로 구성
 
-### 🧪 테스트
+## 📁 엔지니어 디렉토리 구성
+
+```plaintext
+manifests/
+├── base/               # 공통 리소스 (PVC, Service)
+├── v1/                 # blue 버전 (기존 운영)
+├── v2/                 # green 버전 (신규 배포)
+├── init-sql/           # 초기 데이터 ConfigMap
+```
+
+---
+
+## 🧪 운영 시나리오
+
+1. `fastapi_app:v2` 이미지가 GitHub Actions를 통해 DockerHub에 push됨
+2. ArgoCD가 manifests/v2 경로 감지 → green 버전 배포
+3. 운영자는 ArgoCD UI 또는 Git commit으로 service selector를 green으로 전환
+4. 실시간 트래픽이 blue → green 으로 무중단 전환됨
+
+---
+
+## 🚀 실행/배포 요약
 
 ```bash
-make test    # pytest 기반 단위 테스트
-make newman  # Postman 시나리오 기반 API 테스트 (newman)
+# 1. 공통 리소스
+kubectl apply -f manifests/base/
+
+# 2. 초기 SQL ConfigMap
+kubectl apply -f manifests/init-sql/
+
+# 3. v1 (blue) 배포
+kubectl apply -f manifests/v1/
+
+# 4. v2 (green) 배포
+kubectl apply -f manifests/v2/
+
+# 5. 트래픽 전환
+kubectl patch svc fastapi-service -p '{"spec":{"selector":{"app":"fastapi","version":"green"}}}'
 ```
 
 ---
 
-## 👷‍♂️ 인프라 엔지니어 관점 (Ops)
+## 🔁 CI/CD 흐름
 
-### ⚙️ 기술 스택
-
-| 항목         | 내용                                               |
-|--------------|----------------------------------------------------|
-| Container    | Docker, DockerHub (`sungbin/fastapi-app`)         |
-| Orchestration | Kubernetes (v1.30+)                               |
-| 배포 전략     | Blue/Green Deployment                             |
-| 자동화 도구  | GitHub Actions, Jenkins                           |
-| DB 초기화     | InitContainer + ConfigMap + PVC                   |
-
----
-
-## 🚀 배포 절차 (Blue → Green)
-
-### 🛠 사전 준비
-
-> 모든 **Worker Node**에 SQLite DB용 디렉토리를 수동 생성
-
-```bash
-sudo mkdir -p /mnt/data/sqlite
-sudo chmod 777 /mnt/data/sqlite
-```
-
-### 📦 배포 명령어 (Master Node 기준)
-
-```bash
-# 1. 초기 SQL 설정 (ConfigMap)
-kubectl apply -f k8s/v1/configmap-init-sql.yaml
-
-# 2. PV/PVC 설정
-kubectl apply -f k8s/v1/sqlite-volume.yaml
-
-# 3. 초기 버전 배포 (v1, track=blue)
-kubectl apply -f k8s/v1/blue-deployment.yaml
-
-# 4. Service 생성
-kubectl apply -f k8s/v1/service.yaml
-
-# 5. 신규 버전 배포 (v2, track=green)
-kubectl apply -f k8s/v1/green-deployment.yaml
-
-# 6. 트래픽 전환 (Service Selector 변경)
-kubectl patch service fastapi-service -p '{"spec":{"selector":{"app":"fastapi", "track":"green"}}}'
-```
-
-### 🔍 상태 확인 명령어
-
-```bash
-kubectl get pods -o wide
-kubectl get svc
-kubectl get endpoints
+```plaintext
+[Dev]
+ └── GitHub push
+       ↓
+[CI]
+ └── GitHub Actions: Test + Build + Push
+       ↓
+[CD]
+ └── ArgoCD auto-sync
+       ↓
+[OPS]
+ └── Service selector 변경 → 무중단 전환
 ```
 
 ---
 
-![image](https://github.com/user-attachments/assets/c455c3c6-5b5e-4e12-bee8-522d445ae111)
-
-
-## 📂 Kubernetes 구성 파일
-
-| 파일명                          | 설명                                 |
-|----------------------------------|--------------------------------------|
-| `blue-deployment.yaml`          | 기존 버전 (v1), `track: blue`        |
-| `green-deployment.yaml`         | 신규 버전 (v2), `track: green`       |
-| `service.yaml`                  | 공통 서비스 (Selector에 따라 전환)  |
-| `configmap-init-sql.yaml`       | 초기 SQL 실행용 ConfigMap            |
-| `sqlite-volume.yaml`            | PVC/PV 구성 (SQLite 파일 저장용)     |
 
 ---
-
-## ⚙️ GitHub Actions (CI/CD)
-
-`.github/workflows/fastapi-dev-pipeline.yml`  
-- `main` 브랜치에 푸시 시 실행  
-- Pytest → Docker 빌드 → DockerHub 푸시 순으로 자동화 처리
-
----
-
-## 💡 학습 포인트
-
-- Blue/Green 전략으로 무중단 배포 전환  
-- InitContainer로 DB 초기화 처리  
-- GitHub Actions + ArgoCD 기반 자동화 구성  
-- Pod 상태, Endpoints 확인 등 실무 환경 대응 능력 배양
-
----
-
-## 🔗 관련 링크
-
-- DockerHub: `docker.io/sungbin/fastapi-app:v1`, `v2`
-- GitHub Actions: `.github/workflows/`
