@@ -76,12 +76,23 @@ port-all:
 # ===================
 
 clean:
-	kubectl delete deployment,svc,cm,secret,pvc -l app=fastapi || true
-	kubectl delete rollout fastapi-rollout || true
-	kubectl delete -f k8s/argo/argo-rollouts-install.yaml || true
-	kubectl delete -f k8s/argo/argo-workflows-install.yaml || true
-	kubectl delete -f k8s/argo/argocd-install.yaml || true
-	@echo "[INFO] Clean completed."
+	# 삭제 - fastapi 앱 관련 리소스 (default namespace)
+	-kubectl delete rollout fastapi-rollout -n default || true
+	-kubectl delete svc fastapi-active -n default || true
+	-kubectl delete svc fastapi-preview -n default || true
+	-kubectl delete pvc sqlite-pvc -n default || true
+	-kubectl delete pv sqlite-pv || true
+
+	# 삭제 - argo-rollouts 관련 리소스 (argo-rollouts namespace)
+	-kubectl delete deploy argo-rollouts-controller -n argo-rollouts || true
+	-kubectl delete svc argo-rollouts-server -n argo-rollouts || true
+	-kubectl delete deploy argo-rollouts-dashboard -n argo-rollouts || true
+	-kubectl delete svc argo-rollouts-dashboard -n argo-rollouts || true
+
+	# argo-rollouts 네임스페이스 자체 삭제
+	-kubectl delete ns argo-rollouts || true
+
+	@echo "✅ Clean completed: fastapi rollout, services, PVC, PV, argo-rollouts controller/dashboard."
 
 reset:
 	make clean
