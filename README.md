@@ -56,20 +56,10 @@ manifests/
 ## 🚀 실행/배포 요약
 
 ```bash
-# 1. 공통 리소스
-kubectl apply -f manifests/base/
-
-# 2. 초기 SQL ConfigMap
-kubectl apply -f manifests/init-sql/
-
-# 3. v1 (blue) 배포
-kubectl apply -f manifests/v1/
-
-# 4. v2 (green) 배포
-kubectl apply -f manifests/v2/
-
-# 5. 트래픽 전환
-kubectl patch svc fastapi-service -p '{"spec":{"selector":{"app":"fastapi","version":"green"}}}'
+트래픽 전환
+kubectl-argo-rollouts get rollout fastapi-rollout
+kubectl-argo-rollouts promote fastapi-rollout
+kubectl-argo-rollouts status fastapi-rollout
 ```
 
 ---
