@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: fastapi-rollout
+spec:
+  replicas: 2
+  strategy:
+    blueGreen:
+      activeService: fastapi-service-active
+      previewService: fastapi-service-preview
+      autoPromotionEnabled: false
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+      - name: fastapi
+        image: terrnabin/fastapi_app:v1
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 2
+          periodSeconds: 5
