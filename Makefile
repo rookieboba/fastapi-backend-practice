@@ -82,6 +82,10 @@ clean:
 	-kubectl delete svc fastapi-preview -n default || true
 	-kubectl delete pvc sqlite-pvc -n default || true
 	-kubectl delete pv sqlite-pv || true
+	-kubectl delete hpa fastapi-hpa -n default || true
+	-kubectl delete servicemonitor fastapi-service-monitor -n default || true
+	-kubectl delete ingress fastapi-ingress -n default || true
+	-kubectl delete networkpolicy fastapi-policy -n default || true
 
 	# 삭제 - argo-rollouts 관련 리소스 (argo-rollouts namespace)
 	-kubectl delete deploy argo-rollouts-controller -n argo-rollouts || true
@@ -89,8 +93,10 @@ clean:
 	-kubectl delete deploy argo-rollouts-dashboard -n argo-rollouts || true
 	-kubectl delete svc argo-rollouts-dashboard -n argo-rollouts || true
 
-	# argo-rollouts 네임스페이스 자체 삭제
+	# argo 네임스페이스 자체 삭제
 	-kubectl delete ns argo-rollouts || true
+	-kubectl delete ns argo || true
+	-kubectl delete ns argocd || true
 
 	@echo "✅ Clean completed: fastapi rollout, services, PVC, PV, argo-rollouts controller/dashboard."
 
