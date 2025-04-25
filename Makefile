@@ -1,4 +1,10 @@
 DOCKER_COMPOSE := $(shell command -v docker-compose > /dev/null 2>&1 && echo docker-compose || echo docker compose)
+SERVER_IP := $(shell hostname -I | awk '{print $$1}')
+PORT_FASTAPI_ACTIVE := 30080
+PORT_FASTAPI_PREVIEW := 30081
+PORT_ARGO_ROLLOUTS := 3100
+PORT_ARGO_WORKFLOWS := 2746
+PORT_ARGOCD := 8080
 
 # ===================
 # 🧪 개발 환경
