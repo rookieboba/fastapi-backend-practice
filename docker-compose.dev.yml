@@ -7,10 +7,11 @@ services:
     ports:
       - "${APP_PORT}:8000"
     volumes:
-      - ./app:/app
-      - ./sqlite3:/app/sqlite3
-      - ./data:/data
-      - ./tests:/tests  # ✅ 추가
+      - ./app:/app/app          # ✅ Python 소스
+      - ./data:/app/data        # ✅ DB 파일
+      - ./sqlite3:/app/sqlite3  # ✅ 초기화 SQL
+      - ./tests:/app/tests      # ✅ 테스트 코드
+      - ./htmlcov:/app/htmlcov  # ✅ 커버리지 리포트
     env_file:
       - .env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
