@@ -13,10 +13,6 @@ docker-dev:
 docker-down:
 	${DOCKER_COMPOSE} -f docker-compose.dev.yml down
 
-#docker-push:
-#	docker build -t terrnabin/fastapi_app:v1 .
-#	docker push terrnabin/fastapi_app:v1
-
 test:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=term tests/" -d
