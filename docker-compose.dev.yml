@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   web:
     build:
@@ -7,12 +5,12 @@ services:
       dockerfile: Dockerfile.dev
     container_name: fastapi-dev
     ports:
-      - "8000:8000"
+      - "${APP_PORT}:8000"
     volumes:
-      - .:/app # 코드 핫리로드용
-      - ./data:/data # ✅ 로컬에서 SQLite DB 확인 가능
-    entrypoint: [ "/app/sqlite3/docker-entrypoint.sh" ]
-    command: [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+      - ./app:/app
+      - ./sqlite3:/app/sqlite3
+      - ./data:/data
+    env_file:
+      - .env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-volumes:
-  db-data:
