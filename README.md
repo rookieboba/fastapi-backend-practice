@@ -1,3 +1,4 @@
+[수정중]
 # FastAPI Blue/Green 배포 실습 (Production-ready)
 
 FastAPI 기반 내부 API 서버를 GitOps 기반으로 운영하는 구조를 실습합니다.  
