@@ -19,4 +19,6 @@ else
 fi
 
 # 2. FastAPI 앱 실행 (Dockerfile CMD에서 넘겨줌)
-exec "$@"
+#exec "$@"
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+
