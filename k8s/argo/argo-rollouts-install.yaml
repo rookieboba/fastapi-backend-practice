@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: argo-rollouts
-        image: quay.io/argoproj/argo-rollouts:v1.7.3
+        image: quay.io/argoproj/argo-rollouts:v1.6.5
         ports:
         - containerPort: 8080
 ---
