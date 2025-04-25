@@ -15,10 +15,13 @@ run-dev:
 
 docker-dev:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up --build -d
+	@echo "[INFO] Docker containers are running:"
+	docker ps
 
 docker-down:
 	${DOCKER_COMPOSE} -f docker-compose.dev.yml down
-
+	@echo "[INFO] Docker containers stopped."
+	
 test:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=term tests/" -d
@@ -36,20 +39,24 @@ first-deploy:
 	kubectl apply -k k8s/
 	kubectl get all
 	@echo "[INFO] First deployment completed."
+	kubectl get pods,svc,deploy,rollout
 
 deploy-all:
 	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
 	kubectl apply -k k8s/
 	kubectl get all
 	@echo "[INFO] Full deployment completed."
+	kubectl get pods,svc,deploy,rollout
 
 deploy-dashboard:
 	kubectl apply -f k8s/argo/argo-rollouts-dashboard-install.yaml
 	@echo "[INFO] Argo Rollouts Dashboard installed from local file."
+	kubectl get deploy -n argo-rollouts
 
 rollout-promote:
 	kubectl argo rollouts promote fastapi-rollout
 	@echo "[INFO] Rollout promoted."
+	kubectl argo rollouts get rollout fastapi-rollout
 
 rollout-monitor:
 	kubectl argo rollouts get rollout fastapi-rollout --watch
@@ -82,3 +89,4 @@ reset:
 	make deploy-dashboard
 	make port-all
 	@echo "[INFO] Reset and redeploy completed including dashboard installation and port forwarding."
+	kubectl get pods,svc,deploy,rollout
