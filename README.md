@@ -1,6 +1,7 @@
 # FastAPI Blue/Green Deployment Practice
 
-FastAPI 기반 REST API 애플리케이션을 Kubernetes 환경에서 Blue/Green 배포 전략으로 무중단 전환하며, CI/CD 자동화를 실습합니다.
+FastAPI 기반 REST API 애플리케이션을 개발하고,
+Kubernetes 환경에서 Blue/Green 배포 전략으로 실습
 
 ---
 
