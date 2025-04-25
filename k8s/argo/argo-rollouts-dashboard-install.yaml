@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argo-rollouts-dashboard
+  namespace: argo-rollouts
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argo-rollouts-dashboard
+  template:
+    metadata:
+      labels:
+        app: argo-rollouts-dashboard
+    spec:
+      containers:
+      - name: argo-rollouts-dashboard
+        image: argoproj/argo-rollouts-dashboard:latest
+        ports:
+        - containerPort: 3100
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: argo-rollouts-dashboard
+  namespace: argo-rollouts
+spec:
+  selector:
+    app: argo-rollouts-dashboard
+  ports:
+  - protocol: TCP
+    port: 3100
+    targetPort: 3100
