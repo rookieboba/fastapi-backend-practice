@@ -27,21 +27,28 @@ Kubernetes + Argo Rollouts 환경에서 **Blue/Green 무중단 배포** 실습�
 ├── app/                    # FastAPI 앱 소스코드
 ├── sqlite3/                # 초기화 SQL 및 entrypoint
 ├── k8s/                    # Kubernetes 리소스 구성
-├── docker-compose.*.yml   # 개발/운영용 Docker Compose 설정
+├── docker-compose.*.yml    # 개발/운영용 Docker Compose 설정
 ├── Makefile                # 자주 쓰는 명령어 단축어
 └── README.md
 ```
 
 ## 빠른 시작
 
-### 1. 개발 서버 실행
+### 1. git repo 받아오기
 
+```bash
+git clone https://github.com/rookieboba/fastapi-bluegreen-deploy
+cd fastapi-bluegreen-deploy/
+```
+
+### 2. 개발환경 구축
+
+2-1) 로컬 기반
 ```bash
 make run-dev
 ```
 
-### 2. Docker 개발 환경 실행
-
+2-2) 컨테이너 기반
 ```bash
 make docker-dev
 ```
@@ -49,12 +56,25 @@ make docker-dev
 ### 3. DockerHub로 이미지 Push
 
 ```bash
-make docker-push
+docker build -t terrnabin/fastapi_app:v1 .
+docker push terrnabin/fastapi_app:v1
+```
+
+### 4. test
+
+```bash
+make test
+```
+
+### 5. coverage test
+
+```bash
+make test-cov
 ```
 
 ---
 
-## ☸️ Kubernetes 배포 (Argo Rollouts 포함)
+## ☸Kubernetes 배포 (Argo Rollouts 포함)
 
 ### 1. 전체 리소스 배포
 
