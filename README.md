@@ -92,6 +92,9 @@ kubectl get endpoints
 
 ---
 
+![image](https://github.com/user-attachments/assets/c455c3c6-5b5e-4e12-bee8-522d445ae111)
+
+
 ## 📂 Kubernetes 구성 파일
 
 | 파일명                          | 설명                                 |
