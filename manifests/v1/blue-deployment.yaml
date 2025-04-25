@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fastapi-blue
+  labels:
+    app: fastapi
+    version: blue
 spec:
   replicas: 1
   selector:
@@ -15,14 +18,26 @@ spec:
         version: blue
     spec:
       containers:
-        - name: fastapi
-          image: sungbin/fastapi-app:v1
-          volumeMounts:
-            - name: db-volume
-              mountPath: /data
-          ports:
-            - containerPort: 8000
-      volumes:
-        - name: db-volume
-          persistentVolumeClaim:
-            claimName: sqlite-pvc
+      - name: fastapi
+        image: terrnabin/fastapi_app:v1
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
