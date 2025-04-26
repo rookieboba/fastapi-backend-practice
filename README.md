@@ -71,10 +71,13 @@ docker push terrnabin/fastapi_app:v1
 make test
 ```
 
-### 5. coverage test
+### 5. coverage test 
 
 ```bash
 make test-cov
+# test-cov는 코드 커버리지 측정 + HTML 리포트 출력용
+# cd htmlcov
+# python3 -m http.server 8080
 ```
 
 ---
