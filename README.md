@@ -91,7 +91,7 @@ make deploy
 ```
 
 💡 생성되는 리소스:
-- `argo`
+- `argo`, `argo-rollout`, `argocd` 
 - `ConfigMap`, `Secret`  
 - `PersistentVolumeClaim`  
 - `Service (active / preview)`  
