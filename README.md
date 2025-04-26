@@ -53,6 +53,11 @@ make run-dev
 make docker-dev
 ```
 
+2-3) 컨테이너 종료
+```bash
+make docker-down
+```
+
 ### 3. DockerHub로 이미지 Push
 
 ```bash
