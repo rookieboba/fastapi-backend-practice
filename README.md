@@ -2,6 +2,7 @@
 
 FastAPI 기반 API 백엔드 프로젝트.  
 Kubernetes + Argo Rollouts 환경에서 **Blue/Green 무중단 배포** 실습을 위한 구조로 구성됨.
+MakeFile 이용 간편화
 
 ---
 
