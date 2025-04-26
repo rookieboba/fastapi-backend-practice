@@ -1,11 +1,14 @@
+# k8s/kustomization.yaml (최종 수정본)
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - argo/
   - rollout/fastapi-rollout.yaml
-  - service/fastapi-service-active.yaml
-  - service/fastapi-service-preview.yaml
+#  - service/fastapi-service-active.yaml
+#  - service/fastapi-service-preview.yaml
+  - service/fastapi-active.yaml
+  - service/fastapi-preview.yaml
   - config/fastapi-configmap.yaml
   - config/fastapi-secret.yaml
   - config/fastapi-pvc.yaml

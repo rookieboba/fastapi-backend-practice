@@ -1,0 +1,17 @@
+# k8s/service/nginx-active.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-active
+  namespace: default
+spec:
+  selector:
+    app: nginx
+    track: stable
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: NodePort
+

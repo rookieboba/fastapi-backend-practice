@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: argo-rollouts-dashboard
-        image: argoproj/argo-rollouts-dashboard:latest
+        image: argoproj/argo-rollouts-dashboard:v1.6.5
         ports:
         - containerPort: 3100
 ---

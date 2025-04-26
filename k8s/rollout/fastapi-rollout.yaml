@@ -1,23 +1,30 @@
+# k8s/rollout/fastapi-rollout.yaml
+
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
   name: fastapi-rollout
+  namespace: default
 spec:
   replicas: 2
+  revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: fastapi
+      track: stable   # ✅ 추가!
   template:
     metadata:
       labels:
         app: fastapi
+        track: stable  # ✅ 추가!
     spec:
       containers:
       - name: fastapi
-        image: terrnabin/fastapi_app:v1  # 🔥 오타 수정
+        image: terrnabin/fastapi_app:v1
+        imagePullPolicy: Always
         command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
         ports:
-        - containerPort: 8000  # 🔥 포트 수정
+        - containerPort: 8000
         readinessProbe:
           httpGet:
             path: /health
@@ -26,7 +33,7 @@ spec:
           periodSeconds: 5
   strategy:
     blueGreen:
-      activeService: fastapi-service-active
-      previewService: fastapi-service-preview
+      activeService: fastapi-active
+      previewService: fastapi-preview
       autoPromotionEnabled: false
 
