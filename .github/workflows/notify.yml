@@ -5,22 +5,22 @@ on:
   workflow_run:
     workflows: [ "FastAPI CI" ]
     types: [ completed ]
-    
+
 jobs:
   notify:
     name: 결과 알림 (Slack + Email)
     runs-on: ubuntu-latest
-    needs: docker
     if: always()
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-    steps:
-      - name: 🔍 Debug: 웹훅 URL 확인
-        run: |
-          echo "▶ SLACK_WEBHOOK_URL: $SLACK_WEBHOOK_URL"
 
-      - name: 🔍 Debug: 전체 환경변수 출력
-        run: env
+    steps:
+      - name: 🐞 Debug: 환경변수 확인
+        run: |
+          # GitHub가 시크릿 값을 마스킹하니 `***`로 보여집니다.
+          echo "SLACK_WEBHOOK_URL is: $SLACK_WEBHOOK_URL"
+          # 모든 환경변수를 보고 싶다면:
+          env
 
       - name: Slack 알림
         uses: slackapi/slack-github-action@v1.23.0
