@@ -1,13 +1,12 @@
 # .github/workflows/main.yml
+
 name: FastAPI CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   test:
@@ -56,13 +55,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker
     if: always()
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
-      - name: Slack 알림
+      - name: Slack 알림 (Bot Token)
         uses: slackapi/slack-github-action@v1.23.0
         with:
-          channel-id: 'C08PU6GKZA4'
+          bot-token:   ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id:  'C08PU6GKZA4'
           slack-message: |
             🎮 FastAPI 파이프라인 알림
             • Repo:   ${{ github.repository }}
