@@ -1,5 +1,5 @@
-# .github/workflows/ci.yml
-name: FastAPI CI
+# .github/workflows/main.yml
+name: Install
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    name: 유닛 테스트
+    name: 최소 설치 및 pytest
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
