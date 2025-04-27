@@ -107,6 +107,8 @@ make deploy
 ```bash
 make promote
 ```
+![image](https://github.com/user-attachments/assets/dc0c36e7-a099-4c8c-bee6-37f5e6e86436)
+
 
 ---
 
