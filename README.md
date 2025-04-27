@@ -1,152 +1,122 @@
 # fastapi-bluegreen-deploy
 
-FastAPI 기반 API 백엔드 프로젝트.  
-Kubernetes + Argo Rollouts 환경에서 **Blue/Green 무중단 배포** 실습을 위한 구조로 구성됨.
-MakeFile 이용 간편화
+## 프로젝트 소개
+> Kubernetes + Argo Rollouts 환경에서 **Blue/Green 무중단 배포** 전력을 지\ucdirect 구현하고 실습한 프로젝트입니다.
+
+- FastAPI 기반 앱 개발하여 DockerHub에 업로드 후 Kubernetes에 배포 시도
+- FastAPI 앱 배포 중 일부 문제를 걸친 후 무중단 배포 실습을 위해 nginx 공식 이미지를 활용
+- DevOps 및 클라우드 네이트에 해당한 실전 경험과 문제 해결 능력 강화 목표
 
 ---
 
-## 기술 스택
+## 구성 기술
 
-| 구분 | 기술 |
-|------|------|
-| 언어 | Python 3.11 |
-| 프레임워크 | FastAPI |
-| 데이터베이스 | SQLite |
-| 인프라 | Kubernetes v1.30 |
-| GitOps | ArgoCD, Argo Rollouts |
-| 모니터링 | Prometheus Operator |
-| 기타 | GitHub Actions, DockerHub, Makefile 기반 자동화 |
-
+| 기술 스크 | 버전 |
+|:----------|:----|
+| Kubernetes | v1.30.x |
+| Argo Rollouts | v1.6.5 |
+| Container Runtime | containerd 1.6.32 |
+| DockerHub Public Image | 활용 |
 
 ---
 
-## 📁 디렉토리 구조 (요약)
-
+## 프로젝트 구성
 ```
-.
-├── app/                    # FastAPI 앱 소스코드
-├── sqlite3/                # 초기화 SQL 및 entrypoint
-├── k8s/                    # Kubernetes 리소스 구성
-├── docker-compose.*.yml    # 개발/운영용 Docker Compose 설정
-├── Makefile                # 자주 쓰는 명령어 단축어
-└── README.md
+fastapi-bluegreen-deploy/
+├── app/                 
+├── k8s/
+│   ├── argo/             # Argo Rollouts 설정 파일
+│   ├── config/           # ConfigMap, Secret, PVC
+│   ├── hpa/              # HPA
+│   ├── ingress/          # Ingress 설정
+│   ├── monitoring/       # ServiceMonitor
+│   ├── policy/           # NetworkPolicy
+│   ├── rollout/          # Blue/Green 전력
+│   └── service/          # 서비스 파일
+├── manifests/
+├── Dockerfile
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
+├── Makefile
+├── README.md
+└── requirements.txt
 ```
 
-## 빠른 시작
+---
 
-### 1. git repo 받아오기
+## 빠른 시작 (Quick Start)
 
 ```bash
-git clone https://github.com/rookieboba/fastapi-bluegreen-deploy
-cd fastapi-bluegreen-deploy/
-```
+# 1. 프로젝트 다운로드
+git clone <repo-url>
+cd fastapi-bluegreen-deploy
 
-### 2. 개발환경 구축
-
-2-1) 로컬 기반
-```bash
-make run-dev
-```
-
-2-2) 컨테이너 기반
-```bash
-make docker-dev
-```
-
-2-3) 컨테이너 종료
-```bash
-make docker-down
-```
-
-### 3. DockerHub로 이미지 Push
-
-```bash
+# 2. FastAPI Docker 이미지 빌드 및 푸시
 docker build -t terrnabin/fastapi_app:v1 .
 docker push terrnabin/fastapi_app:v1
-```
 
-### 4. test
+# 3. Kubernetes 리소스 배포
+kubectl apply -k k8s/
 
-```bash
-make test
-```
+# 4. Argo Rollouts 상태 확인
+kubectl argo rollouts get rollout nginx-rollout
 
-### 5. coverage test 
+# 5. (필요 시) 수동 프로모션
+kubectl argo rollouts promote nginx-rollout
 
-```bash
-make test-cov
-# test-cov는 코드 커버리지 측정 + HTML 리포트 출력용
-# cd htmlcov
-# python3 -m http.server 8080
+# 6. nginx 버전 업데이트 (1.21 ➔ 1.25)
+kubectl apply -f k8s/rollout/nginx-rollout.yaml
 ```
 
 ---
 
-## ☸Kubernetes 배포 (Argo Rollouts 포함)
+## Blue/Green 배포 해제 설정
 
-### 1. 전체 리소스 배포
-
-```bash
-make deploy
-```
-
-💡 생성되는 리소스:
-- `argo`, `argo-rollout`, `argocd` 
-- `ConfigMap`, `Secret`  
-- `PersistentVolumeClaim`  
-- `Service (active / preview)`  
-- `Rollout`  
-- `Ingress`  
-- `HPA`  
-- `ServiceMonitor`  
-- `NetworkPolicy`
-
-### 2. 트래픽 전환 (Blue → Green)
-
-```bash
-make promote
-```
-![image](https://github.com/user-attachments/assets/dc0c36e7-a099-4c8c-bee6-37f5e6e86436)
-
-
----
-
-## 🔁 전체 리소스 초기화 (테스트 재시작용)
-
-```bash
-make clean
-```
-
-또는 수동 초기화:
-
-```bash
-kubectl delete all --all
-kubectl delete pvc --all
-kubectl delete rollout fastapi-rollout
-```
-
----
-
-## 💡 Blue/Green 배포 전략
-
-이 프로젝트는 `Argo Rollouts`를 사용해 다음을 실현합니다:
-
-- 새로운 버전(예: v2)을 미리 배포 (preview)
-- 문제 없을 경우 수동 프로모션으로 트래픽 전환
-- 기존 버전(v1)은 롤백용으로 대기
-
+**[k8s/rollout/nginx-rollout.yaml]**
 ```yaml
 strategy:
   blueGreen:
-    activeService: fastapi-service-active
-    previewService: fastapi-service-preview
+    activeService: nginx-active
+    previewService: nginx-preview
     autoPromotionEnabled: false
 ```
 
+**Deployment 코드**
 
-### ✅ 참고
+**[k8s/rollout/nginx-rollout.yaml]**
+```yaml
+containers:
+  - name: nginx
+    # image: nginx:1.21
+    image: nginx:1.25  # 1.25로 변경하며 배포
+    ports:
+      - containerPort: 80
+```
 
-- 실제 `DockerHub 이미지` → `terrnabin/fastapi_app:v1`
-- SQLite DB는 `/data/db.sqlite3` 위치로 PVC에 마운트됨
-- 초기 데이터는 `/sqlite3/*.sql` 통해 InitContainer에서 삽입
+**Argo Rollouts 상태 조회**
+
+![image](https://github.com/user-attachments/assets/706c4f87-be43-497f-bf7a-02b548c15164)
+
+
+---
+
+## FastAPI 개발 및 전환 경험
+
+- FastAPI 앱 개발 → DockerHub Push → Kubernetes 배포 시도
+- **CrashLoopBackOff** 이수 발생 (앱 내림 종료 문제)
+- 문제 방안 및 재배포 시도했지만, 무중단 배포 실습을 위해 nginx 전환
+
+---
+
+## Troubleshooting 요약
+
+| 문제 | 원인 | 해결 방법 |
+|:-----|:-----|:-----------|
+| Argo Rollouts 권한 부족 | ServiceAccount Role 부족 | ClusterRole/RoleBinding 수정 |
+| Service Label 비일치 | track 레이블 비일치 | track: canary 수정 |
+| FastAPI 앱 CrashLoopBackOff | 앱 내림 종료 문제 | nginx 공식 이미지 대체 |
+
+---
+
+
+
