@@ -104,7 +104,7 @@ containers:
 
 - FastAPI 앱 개발 → DockerHub Push → Kubernetes 배포 시도
 - **CrashLoopBackOff** 이수 발생 (앱 내림 종료 문제)
-- 문제 방안 및 재배포 시도했지만, 무중단 배포 실습을 위해 nginx 전환
+- 문제 방안 및 재배포 시도했지만, 무중단 배포 실습을 위해 FastAPI 개발이 아닌,  nginx 버전 업데이트로 전환
 
 ---
 
