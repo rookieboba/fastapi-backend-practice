@@ -1,0 +1,42 @@
+# .github/workflows/notify.yml
+name: Notify Slack & Email
+
+on:
+  workflow_run:
+    workflows: ["FastAPI CI"]
+    types: 
+      - completed
+
+jobs:
+  notify:
+    name: 결과 알림 (Slack + Email)
+    runs-on: ubuntu-latest
+    if: always()  # 워크플로우가 성공/실패 모두 감지
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - name: Slack 알림
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: 'C08PU6GKZA4'
+          slack-message: |
+            🎮 FastAPI 파이프라인 알림
+            • Workflow: FastAPI CI
+            • Status:   ${{ github.event.workflow_run.conclusion }}
+            • Run:      #${{ github.event.workflow_run.run_number }}
+
+      - name: Email 알림
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port:    ${{ secrets.SMTP_PORT }}
+          username:       ${{ secrets.SMTP_USERNAME }}
+          password:       ${{ secrets.SMTP_PASSWORD }}
+          to:             terranbin@gmail.com
+          from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
+          subject:        '[FastAPI][CI 알림] ${{ github.event.workflow_run.conclusion }}'
+          body: |
+            FastAPI CI 파이프라인이 완료되었습니다.
+            • Workflow: FastAPI CI
+            • Status:   ${{ github.event.workflow_run.conclusion }}
+            • URL:      ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
