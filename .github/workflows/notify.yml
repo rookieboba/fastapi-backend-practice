@@ -3,7 +3,7 @@ name: Notify Slack & Email
 
 on:
   workflow_run:
-    workflows: ["FastAPI CI"]
+    workflows: ["Notify Slack & Email"]
     types: [completed]
 
 jobs:
