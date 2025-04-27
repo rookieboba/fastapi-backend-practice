@@ -1,0 +1,49 @@
+name: "Notify Slack & Email (Sungbin Park FastAPI)"
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 코드
+        uses: actions/checkout@v3
+
+      - name: Slack으로 알림 보내기
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: |
+            🚀 *Sungbin Park – FastAPI 개발 파이프라인 알림*
+            • 리포지토리: `${{ github.repository }}`
+            • 브랜치: `${{ github.ref_name }}`
+            • 커밋: `${{ github.sha }}`
+            • 작성자: `${{ github.actor }}`
+
+      - name: Email로 알림 보내기
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port:    ${{ secrets.SMTP_PORT }}
+          username:       ${{ secrets.SMTP_USERNAME }}
+          password:       ${{ secrets.SMTP_PASSWORD }}
+          to:             terranbin@gmail.com
+          from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
+          subject:        '[FastAPI][Sungbin Park] 커밋 알림: ${{ github.repository }}'
+          body: |
+            안녕하세요, Sungbin Park입니다.
+
+            FastAPI 개발 파이프라인에서 커밋이 있었습니다.
+
+            • 리포지토리: ${{ github.repository }}
+            • 브랜치:      ${{ github.ref_name }}
+            • 커밋 메시지: ${{ github.event.head_commit.message }}
+            • 커밋 SHA:   ${{ github.sha }}
+            • 실행자:      ${{ github.actor }}
+
+            감사합니다.
