@@ -18,11 +18,11 @@ jobs:
     steps:
       - name: 🐞 Debug: 환경변수 확인
         run: |
+          # ← 이 줄부터
           echo "▶ SLACK_WEBHOOK_URL = '$SLACK_WEBHOOK_URL'"
           env | sort
-
-      # ─────────────────────────────────────────────────────
-      # 1) 성공 시 알림
+          # ← run 블록은 여기까지
+          
       - name: Slack 알림 (성공)
         if: ${{ github.event.workflow_run.conclusion == 'success' }}
         uses: slackapi/slack-github-action@v1.24.0
@@ -37,28 +37,14 @@ jobs:
                   "title_link": "https://github.com/${{ github.repository }}",
                   "text":      "✅ GitHub Action 성공",
                   "fields": [
-                    {
-                      "title": "Repository",
-                      "value": "${{ github.repository }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Branch",
-                      "value": "${{ github.event.workflow_run.head_branch }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Run #",
-                      "value": "${{ github.event.workflow_run.run_number }}",
-                      "short": true
-                    }
+                    {"title":"Repository","value":"${{ github.repository }}","short":true},
+                    {"title":"Branch","value":"${{ github.event.workflow_run.head_branch }}","short":true},
+                    {"title":"Run #","value":"${{ github.event.workflow_run.run_number }}","short":true}
                   ]
                 }
               ]
             }
 
-      # ─────────────────────────────────────────────────────
-      # 2) 실패 시 알림
       - name: Slack 알림 (실패)
         if: ${{ github.event.workflow_run.conclusion == 'failure' }}
         uses: slackapi/slack-github-action@v1.24.0
@@ -73,29 +59,15 @@ jobs:
                   "title_link": "https://github.com/${{ github.repository }}",
                   "text":      "❌ GitHub Action 실패",
                   "fields": [
-                    {
-                      "title": "Repository",
-                      "value": "${{ github.repository }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Branch",
-                      "value": "${{ github.event.workflow_run.head_branch }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Run #",
-                      "value": "${{ github.event.workflow_run.run_number }}",
-                      "short": true
-                    }
+                    {"title":"Repository","value":"${{ github.repository }}","short":true},
+                    {"title":"Branch","value":"${{ github.event.workflow_run.head_branch }}","short":true},
+                    {"title":"Run #","value":"${{ github.event.workflow_run.run_number }}","short":true}
                   ]
                 }
               ]
             }
 
-      # ─────────────────────────────────────────────────────
       - name: Email 알림
-        if: ${{ always() }}
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
