@@ -1,35 +1,83 @@
-# .github/workflows/slack-notify.yml
-name: Slack Notification
+# .github/workflows/notify-slack-email.yml
+name: Notify Slack & Email
 
-# 원하는 트리거로 변경 가능 (예: push, pull_request, workflow_run 등)
 on:
   workflow_run:
-    workflows: ["FastAPI CI"]   # 여기에 알림을 보낼 워크플로우 이름
+    workflows: ["FastAPI CI"]
     types: [completed]
 
 jobs:
   notify:
-    name: 📣 Slack 알림
+    name: 결과 알림 (Slack & Email)
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
     steps:
-      - name: Send Slack Notification
-        uses: slackapi/slack-github-action@v1.26.0
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: "🐞 Debug: 환경변수 확인"
+        run: |
+          echo "SLACK_WEBHOOK_URL = '$SLACK_WEBHOOK_URL'"
+          env | sort
+
+      - name: Slack 알림 (실패)
+        if: ${{ github.event.workflow_run.conclusion != 'success' }}
+        uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "*[${{ github.repository }}]* `${{ github.workflow }}` 실행 완료!",
+              "channel": "C08PU6GKZA4",
               "attachments": [
                 {
-                  "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                  "color": "#FF0000",
+                  "title": "${{ github.repository }}",
+                  "title_link": "https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}",
+                  "text": "❌ FastAPI CI 실패",
                   "fields": [
-                    { "title": "브랜치", "value": "${{ github.ref }}", "short": true },
-                    { "title": "결과", "value": "${{ job.status }}", "short": true },
-                    { "title": "Actor", "value": "${{ github.actor }}", "short": true },
-                    { "title": "Run URL", "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": false }
+                    { "title": "Workflow", "value": "FastAPI CI", "short": true },
+                    { "title": "Run #",    "value": "${{ github.event.workflow_run.run_number }}", "short": true },
+                    { "title": "Branch",   "value": "${{ github.event.workflow_run.head_branch }}", "short": true }
                   ]
                 }
               ]
             }
+
+      - name: Slack 알림 (성공)
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "channel": "C08PU6GKZA4",
+              "attachments": [
+                {
+                  "color": "#36A64F",
+                  "title": "${{ github.repository }}",
+                  "title_link": "https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}",
+                  "text": "✅ FastAPI CI 성공",
+                  "fields": [
+                    { "title": "Workflow", "value": "FastAPI CI", "short": true },
+                    { "title": "Run #",    "value": "${{ github.event.workflow_run.run_number }}", "short": true },
+                    { "title": "Branch",   "value": "${{ github.event.workflow_run.head_branch }}", "short": true }
+                  ]
+                }
+              ]
+            }
+
+      - name: Email 알림
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port:    ${{ secrets.SMTP_PORT }}
+          username:       ${{ secrets.SMTP_USERNAME }}
+          password:       ${{ secrets.SMTP_PASSWORD }}
+          to:             terranbin@gmail.com
+          from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
+          subject:        '[FastAPI][CI 알림] ${{ github.event.workflow_run.conclusion }}'
+          body: |
+            FastAPI CI 파이프라인이 ${{ github.event.workflow_run.conclusion }} 되었습니다.
+            • Repo:   ${{ github.repository }}
+            • Run #:  ${{ github.event.workflow_run.run_number }}
+            • Branch: ${{ github.event.workflow_run.head_branch }}
+            • URL:    https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
