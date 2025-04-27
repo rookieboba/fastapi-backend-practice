@@ -1,29 +1,35 @@
-name: Notify Slack & Email
+# .github/workflows/slack-notify.yml
+name: Slack Notification
 
-# FastAPI CI 워크플로우가 완료되면 실행
+# 원하는 트리거로 변경 가능 (예: push, pull_request, workflow_run 등)
 on:
   workflow_run:
-    workflows: ["FastAPI CI"]
+    workflows: ["FastAPI CI"]   # 여기에 알림을 보낼 워크플로우 이름
     types: [completed]
 
 jobs:
   notify:
-    name: 결과 알림 (Slack & Email)
+    name: 📣 Slack 알림
     runs-on: ubuntu-latest
-    if: ${{ always() }}
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
     steps:
-      # 1) 환경 변수 확인 (디버그)
-      - name: "🐞 Debug: 환경 변수 확인"
-        run: |
-          echo "SLACK_WEBHOOK_URL = '$SLACK_WEBHOOK_URL'"
-
-      # 2) (예시) Slack 웹훅 호출
-      - name: "🔔 Slack 알림 전송"
-        run: |
-          curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"워크플로우 완료! 상태: '${{ job.status }}'"}' \
-            $SLACK_WEBHOOK_URL
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.26.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          payload: |
+            {
+              "text": "*[${{ github.repository }}]* `${{ github.workflow }}` 실행 완료!",
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                  "fields": [
+                    { "title": "브랜치", "value": "${{ github.ref }}", "short": true },
+                    { "title": "결과", "value": "${{ job.status }}", "short": true },
+                    { "title": "Actor", "value": "${{ github.actor }}", "short": true },
+                    { "title": "Run URL", "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": false }
+                  ]
+                }
+              ]
+            }
