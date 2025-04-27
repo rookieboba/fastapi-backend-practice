@@ -13,6 +13,7 @@ jobs:
     if: ${{ always() }}
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
     steps:
       - name: 🐞 Debug: 환경변수 확인
         run: |
