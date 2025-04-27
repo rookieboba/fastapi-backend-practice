@@ -62,7 +62,7 @@ jobs:
       - name: Slack 알림
         uses: slackapi/slack-github-action@v1.23.0
         with:
-          channel-id: '#fasf'
+          channel-id: '#C08PU6GKZA4'
           slack-message: |
             🎮 FastAPI 파이프라인 알림
             • Repo:   ${{ github.repository }}
