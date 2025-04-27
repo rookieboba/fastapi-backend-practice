@@ -8,7 +8,7 @@ on:
 
 jobs:
   notify:
-    name: 결과 알림 (Slack + Email)
+    name: 결과 알림 (Slack & Email)
     runs-on: ubuntu-latest
     if: ${{ always() }}
     env:
@@ -18,11 +18,31 @@ jobs:
     steps:
       - name: 🐞 Debug: 환경변수 확인
         run: |
-          # ← 이 줄부터
-          echo "▶ SLACK_WEBHOOK_URL = '$SLACK_WEBHOOK_URL'"
+          echo "SLACK_WEBHOOK_URL = '$SLACK_WEBHOOK_URL'"
           env | sort
-          # ← run 블록은 여기까지
-          
+
+      - name: Slack 알림 (실패)
+        if: ${{ github.event.workflow_run.conclusion != 'success' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "channel": "C08PU6GKZA4",
+              "attachments": [
+                {
+                  "color": "#FF0000",
+                  "title": "${{ github.repository }}",
+                  "title_link": "https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}",
+                  "text": "❌ FastAPI CI 실패",
+                  "fields": [
+                    { "title": "Workflow", "value": "FastAPI CI", "short": true },
+                    { "title": "Run #",    "value": "${{ github.event.workflow_run.run_number }}", "short": true },
+                    { "title": "Branch",   "value": "${{ github.event.workflow_run.head_branch }}", "short": true }
+                  ]
+                }
+              ]
+            }
+
       - name: Slack 알림 (성공)
         if: ${{ github.event.workflow_run.conclusion == 'success' }}
         uses: slackapi/slack-github-action@v1.24.0
@@ -32,36 +52,14 @@ jobs:
               "channel": "C08PU6GKZA4",
               "attachments": [
                 {
-                  "color": "#36a64f",
+                  "color": "#36A64F",
                   "title": "${{ github.repository }}",
-                  "title_link": "https://github.com/${{ github.repository }}",
-                  "text":      "✅ GitHub Action 성공",
+                  "title_link": "https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}",
+                  "text": "✅ FastAPI CI 성공",
                   "fields": [
-                    {"title":"Repository","value":"${{ github.repository }}","short":true},
-                    {"title":"Branch","value":"${{ github.event.workflow_run.head_branch }}","short":true},
-                    {"title":"Run #","value":"${{ github.event.workflow_run.run_number }}","short":true}
-                  ]
-                }
-              ]
-            }
-
-      - name: Slack 알림 (실패)
-        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            {
-              "channel": "C08PU6GKZA4",
-              "attachments": [
-                {
-                  "color": "#ff0000",
-                  "title": "${{ github.repository }}",
-                  "title_link": "https://github.com/${{ github.repository }}",
-                  "text":      "❌ GitHub Action 실패",
-                  "fields": [
-                    {"title":"Repository","value":"${{ github.repository }}","short":true},
-                    {"title":"Branch","value":"${{ github.event.workflow_run.head_branch }}","short":true},
-                    {"title":"Run #","value":"${{ github.event.workflow_run.run_number }}","short":true}
+                    { "title": "Workflow", "value": "FastAPI CI", "short": true },
+                    { "title": "Run #",    "value": "${{ github.event.workflow_run.run_number }}", "short": true },
+                    { "title": "Branch",   "value": "${{ github.event.workflow_run.head_branch }}", "short": true }
                   ]
                 }
               ]
@@ -78,8 +76,8 @@ jobs:
           from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
           subject:        '[FastAPI][CI 알림] ${{ github.event.workflow_run.conclusion }}'
           body: |
-            FastAPI CI 파이프라인이 완료되었습니다.
-            • 상태:     ${{ github.event.workflow_run.conclusion }}
-            • 브랜치:   ${{ github.event.workflow_run.head_branch }}
-            • 실행번호: #${{ github.event.workflow_run.run_number }}
-            • 링크:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
+            FastAPI CI 파이프라인이 ${{ github.event.workflow_run.conclusion }} 되었습니다.
+            • Repo:   ${{ github.repository }}
+            • Run #:  ${{ github.event.workflow_run.run_number }}
+            • Branch: ${{ github.event.workflow_run.head_branch }}
+            • URL:    https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
