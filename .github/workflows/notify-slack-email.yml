@@ -1,6 +1,6 @@
-# .github/workflows/notify-slack-email.yml
 name: Notify Slack & Email
 
+# FastAPI CI 워크플로우가 완료되면 실행
 on:
   workflow_run:
     workflows: ["FastAPI CI"]
@@ -16,7 +16,14 @@ jobs:
       SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
     steps:
-      - name: 🐞 Debug: 환경 변수 확인
+      # 1) 환경 변수 확인 (디버그)
+      - name: "🐞 Debug: 환경 변수 확인"
         run: |
           echo "SLACK_WEBHOOK_URL = '$SLACK_WEBHOOK_URL'"
-      # (이하 실제 Slack/Email 알림 액션들 추가)
+
+      # 2) (예시) Slack 웹훅 호출
+      - name: "🔔 Slack 알림 전송"
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"워크플로우 완료! 상태: '${{ job.status }}'"}' \
+            $SLACK_WEBHOOK_URL
