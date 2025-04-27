@@ -1,27 +1,64 @@
 pipeline {
     agent any
 
-    environment {
-        // GITHUB_TOKEN = credentials('github-token')
+    // 1) 파이프라인 파라미터화
+    parameters {
+        string(name: 'DOCKER_TAG', defaultValue: 'v1', description: 'Docker Image Tag')
+        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git Branch to Build')
     }
 
     stages {
-        stage('Clone') {
+        stage('Checkout') {
             steps {
-                git url: 'https://github.com/rookieboba/fastapi-backend-practice.git', branch: 'main'
+                git branch: "${params.GIT_BRANCH}", url: 'https://github.com/rookieboba/fastapi-backend-practice.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Image') {
             steps {
-                sh 'docker build -t fastapi-backend-practice-web .'
+                script {
+                    IMAGE="fastapi-backend-practice-web:${params.DOCKER_TAG}"
+                    sh "docker build -t ${IMAGE} ."
+                }
             }
         }
 
         stage('Run Container') {
             steps {
-                sh 'docker stop fastapi-dev || true && docker rm fastapi-dev || true'
-                sh 'docker run -d -p 8000:8000 --name fastapi-dev fastapi-backend-practice-web'
+                sh '''
+                  docker stop fastapi-dev || true
+                  docker rm fastapi-dev   || true
+                  docker run -d -p 8000:8000 --name fastapi-dev ${IMAGE}
+                '''
+            }
+        }
+    }
+
+    post {
+        // 2) withCredentials로 비밀값 안전 주입
+        always {
+            withCredentials([
+                string(credentialsId: 'SLACK_WEBHOOK_URL',    variable: 'SLACK_URL'),
+                usernamePassword(credentialsId: 'SMTP_CRED', usernameVariable: 'SMTP_USER', passwordVariable: 'SMTP_PASS')
+            ]) {
+                script {
+                    // 3) Slack Notification Plugin 사용 예시
+                    slackSend channel: '#ci-cd',
+                              color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger',
+                              message: "`${env.JOB_NAME}` #${env.BUILD_NUMBER} ${currentBuild.currentResult} on branch `${params.GIT_BRANCH}`\n<${env.BUILD_URL}|View Logs>"
+
+                    // 4) Jenkins mail step
+                    mail to:      'terranbin@gmail.com',
+                         from:    "${SMTP_USER}",
+                         subject: "[${env.JOB_NAME}][${currentBuild.currentResult}] Build #${env.BUILD_NUMBER}",
+                         body:    """
+                            프로젝트: fastapi-backend-practice  
+                            브랜치:  ${params.GIT_BRANCH}  
+                            태그:    ${params.DOCKER_TAG}  
+                            결과:    ${currentBuild.currentResult}  
+                            로그:    ${env.BUILD_URL}
+                         """
+                }
             }
         }
     }
