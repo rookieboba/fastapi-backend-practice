@@ -3,8 +3,8 @@ name: Notify Slack & Email
 
 on:
   workflow_run:
-    workflows: [ "FastAPI CI" ]
-    types: [ completed ]
+    workflows: ["FastAPI CI"]
+    types: [completed]
 
 jobs:
   notify:
@@ -13,19 +13,16 @@ jobs:
     if: always()
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
     steps:
       - name: 🐞 Debug: 환경변수 확인
         run: |
-          # GitHub가 시크릿 값을 마스킹하니 `***`로 보여집니다.
-          echo "SLACK_WEBHOOK_URL is: $SLACK_WEBHOOK_URL"
-          # 모든 환경변수를 보고 싶다면:
-          env
+          echo "▶ SLACK_WEBHOOK_URL = '$SLACK_WEBHOOK_URL'"
+          env | sort
 
       - name: Slack 알림
         uses: slackapi/slack-github-action@v1.23.0
         with:
-          channel-id: 'C08PU6GKZA4'
+          channel-id: C08PU6GKZA4
           slack-message: |
             🎮 FastAPI CI 알림
             • 워크플로우: FastAPI CI
@@ -34,4 +31,16 @@ jobs:
 
       - name: Email 알림
         uses: dawidd6/action-send-mail@v3
-        # … 이하 생략
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port:    ${{ secrets.SMTP_PORT }}
+          username:       ${{ secrets.SMTP_USERNAME }}
+          password:       ${{ secrets.SMTP_PASSWORD }}
+          to:             terranbin@gmail.com
+          from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
+          subject:        '[FastAPI][CI 알림] ${{ github.event.workflow_run.conclusion }}'
+          body: |
+            FastAPI CI 파이프라인이 완료되었습니다.
+            • 워크플로우: FastAPI CI
+            • 상태:       ${{ github.event.workflow_run.conclusion }}
+            • 링크:       ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
