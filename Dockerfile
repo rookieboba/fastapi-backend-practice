@@ -1,6 +1,6 @@
 # 운영용 FastAPI Dockerfile
 FROM python:3.11-slim
-
+#
 LABEL maintainer="rookieboba <terranbin@gmail.com>" \
     version="ver 25.04.08" \
     description="FastAPI backend for production"
