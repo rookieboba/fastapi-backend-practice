@@ -5,6 +5,7 @@
 
 - workflows 이용 빌드 시 slack 채널 알림 및 email 전송 구현
 - FastAPI 기반 앱 개발. DockerHub에 이미지 업로드
+- Makefile 이용 자동화
 
 ---
 
