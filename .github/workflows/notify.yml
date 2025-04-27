@@ -31,16 +31,5 @@ jobs:
 
       - name: Email 알림
         uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port:    ${{ secrets.SMTP_PORT }}
-          username:       ${{ secrets.SMTP_USERNAME }}
-          password:       ${{ secrets.SMTP_PASSWORD }}
-          to:             terranbin@gmail.com
-          from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
-          subject:        '[FastAPI][CI 알림] ${{ github.event.workflow_run.conclusion }}'
-          body: |
-            FastAPI CI 파이프라인이 완료되었습니다.
-            • 워크플로우: FastAPI CI
-            • 상태:       ${{ github.event.workflow_run.conclusion }}
-            • 링크:       ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
+        # … 이하 생략
+
