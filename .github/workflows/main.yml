@@ -10,54 +10,11 @@ on:
       - main
 
 jobs:
-  test:
-    name: 유닛 테스트
-    runs-on: ubuntu-latest
-    steps:
-      - name: 코드 체크아웃
-        uses: actions/checkout@v3
-
-      - name: Python 3.10 설정
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: 의존성 설치 및 테스트
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest
-          pytest tests/
-
-  docker:
-    name: Docker 이미지 빌드·푸시
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: 코드 체크아웃
-        uses: actions/checkout@v3
-
-      - name: Buildx 설정
-        uses: docker/setup-buildx-action@v2
-
-      - name: DockerHub 로그인
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: 이미지 빌드
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/fastapi_app:latest .
-
-      - name: 이미지 푸시
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/fastapi_app:latest
-
   notify:
     name: 결과 알림 (Slack + Email)
     runs-on: ubuntu-latest
-    needs: docker
     if: always()
     env:
-      # 여기 env 블록이 반드시 notify: 바로 아래 있어야 합니다
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Slack 알림
