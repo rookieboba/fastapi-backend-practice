@@ -48,12 +48,12 @@ fastapi-bluegreen-deploy/
 
 ```bash
 # 1. 프로젝트 다운로드
-git clone <repo-url>
+git clone https://github.com/rookieboba/fastapi-bluegreen-deploy.git
 cd fastapi-bluegreen-deploy
 
 # 2. FastAPI Docker 이미지 빌드 및 푸시
-docker build -t terrnabin/fastapi_app:v1 .
-docker push terrnabin/fastapi_app:v1
+# docker build -t terrnabin/fastapi_app:v1 .
+# docker push terrnabin/fastapi_app:v1
 
 # 3. Kubernetes 리소스 배포
 kubectl apply -k k8s/
@@ -80,8 +80,6 @@ strategy:
     previewService: nginx-preview
     autoPromotionEnabled: false
 ```
-
-**Deployment 코드**
 
 **[k8s/rollout/nginx-rollout.yaml]**
 ```yaml
@@ -113,7 +111,7 @@ containers:
 | 문제 | 원인 | 해결 방법 |
 |:-----|:-----|:-----------|
 | Argo Rollouts 권한 부족 | ServiceAccount Role 부족 | ClusterRole/RoleBinding 수정 |
-| Service Label 비일치 | track 레이블 비일치 | track: canary 수정 |
+| ReplicaSet/Pod 생성 안됨 | Rollouts Controller 권한 부족 (rollouts/status patch 불가) | default 네임스페이스 Role 추가 (patch 권한 부여) |
 | FastAPI 앱 CrashLoopBackOff | 앱 내림 종료 문제 | nginx 공식 이미지 대체 |
 
 ---
