@@ -1,11 +1,10 @@
 # fastapi-bluegreen-deploy
 
 ## 프로젝트 소개
-> Kubernetes + Argo Rollouts 환경에서 **Blue/Green 무중단 배포** 전력을 지\ucdirect 구현하고 실습한 프로젝트입니다.
+> Kubernetes + Argo Rollouts 환경에서 **Blue/Green 무중단 배포** 구현하고 실습한 프로젝트입니다.
 
-- FastAPI 기반 앱 개발하여 DockerHub에 업로드 후 Kubernetes에 배포 시도
-- FastAPI 앱 배포 중 일부 문제를 걸친 후 무중단 배포 실습을 위해 nginx 공식 이미지를 활용
-- DevOps 및 클라우드 네이트에 해당한 실전 경험과 문제 해결 능력 강화 목표
+- workflows 이용 빌드 시 slack 채널 알림 및 email 전송 구현
+- FastAPI 기반 앱 개발. DockerHub에 이미지 업로드
 
 ---
 
@@ -23,7 +22,7 @@
 ## 프로젝트 구성
 ```
 fastapi-bluegreen-deploy/
-├── app/                 
+├── app/                  # fastapi 개발
 ├── k8s/
 │   ├── argo/             # Argo Rollouts 설정 파일
 │   ├── config/           # ConfigMap, Secret, PVC
@@ -52,8 +51,8 @@ git clone https://github.com/rookieboba/fastapi-bluegreen-deploy.git
 cd fastapi-bluegreen-deploy
 
 # 2. FastAPI Docker 이미지 빌드 및 푸시
-# docker build -t terrnabin/fastapi_app:v1 .
-# docker push terrnabin/fastapi_app:v1
+docker build -t terrnabin/fastapi_app:v1 .
+docker push terrnabin/fastapi_app:v1
 
 # 3. Kubernetes 리소스 배포
 kubectl apply -k k8s/
