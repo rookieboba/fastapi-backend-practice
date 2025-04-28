@@ -29,7 +29,7 @@
 
 1. 코드 클론 & 디렉터리 이동  
    ```bash
-   git clone https://github.com/your-org/fastapi-bluegreen-deploy.git
+   git clone https://github.com/rookieboba/fastapi-bluegreen-deploy.git
    cd fastapi-bluegreen-deploy
    ```
 2. 로컬 개발 환경 기동  
