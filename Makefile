@@ -37,13 +37,25 @@ docker-down:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml down
 	@echo "[INFO] Docker containers stopped."
 
+# ===================
+# 테스트
+# ===================
+
 test:
+	@echo "[INFO] 실행: pytest 단위 테스트 + 커버리지 측정 (터미널 출력)"
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=term tests/"
 
 test-cov:
+	@echo "[INFO] 실행: pytest 단위 테스트 + 커버리지 측정 (HTML 리포트 생성)"
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=html tests/"
+
+db-check:
+	@echo "[INFO] 실행: 개발용 컨테이너 내부 SQLite 데이터베이스 확인"
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml exec web \
+		bash -c "sqlite3 /app/data/db.sqlite3 '.tables'; sqlite3 /app/data/db.sqlite3 'SELECT * FROM payments;'"
+
 
 # ===================
 # Kubernetes 배포
@@ -65,8 +77,9 @@ clean:
 	@echo "[INFO] Deleting existing PV and PVC..."
 	- rm -rf /mnt/data/sqlite
 	- mkdir -p /mnt/data/sqlite
-	- kubectl delete pvc sqlite-pvc -n fastapi
-	- kubectl delete pv sqlite-pv
+	- kubectl delete pvc sqlite-pvc -n fastapi || true
+	- kubectl patch pv sqlite-pv -p '{"spec":{"claimRef": null}}' || true
+	- kubectl delete pv sqlite-pv || true
 	- kubectl delete ns fastapi argocd argo monitoring 
 	@echo "[INFO] Clean completed."
 
