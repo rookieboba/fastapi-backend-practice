@@ -59,15 +59,7 @@ clean:
 	@if [ -n "$$(docker images -q)" ]; then \
 		docker rmi -f $$(docker images -q); \
 	fi
-	- kubectl delete rollout fastapi-rollout -n default
-	- kubectl delete svc fastapi-active fastapi-preview -n default
-	- kubectl delete pvc sqlite-pvc -n default
-	- kubectl delete pv sqlite-pv
-	- kubectl delete hpa fastapi-hpa -n default
-	- kubectl delete servicemonitor fastapi-service-monitor -n default
-	- kubectl delete ingress fastapi-ingress -n default
-	- kubectl delete networkpolicy fastapi-policy -n default
-	- kubectl delete ns argo-rollouts argocd argo
+	- kubectl delete fastapi ns argo-rollouts argocd argo
 	@echo "[INFO] Clean completed."
 
 first-deploy:
