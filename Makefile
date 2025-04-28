@@ -72,12 +72,6 @@ first-deploy:
 
 deploy-all: first-deploy deploy-dashboard
 
-deploy-dashboard:
-	@echo "[INFO] Installing Argo Rollouts Dashboard..."
-	kubectl apply -f k8s/argo/argo-rollouts-dashboard-install.yaml
-	kubectl rollout status deployment/argo-rollouts-dashboard -n argo-rollouts
-	@echo "[INFO] Dashboard deployed."
-
 rollout-promote:
 	@echo "[INFO] Promoting FastAPI Rollout..."
 	kubectl argo rollouts promote fastapi-rollout
