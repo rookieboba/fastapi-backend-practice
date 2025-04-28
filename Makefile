@@ -63,8 +63,8 @@ clean:
 	@echo "[INFO] Clean completed."
 
 first-deploy:
-	@echo "[INFO] Installing Argo Rollouts controller and namespaces..."
-	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
+	@echo "[INFO] Creating Namespace"
+	kubectl apply -f k8s/namespace.yaml
 	@echo "[INFO] Applying all k8s manifests..."
 	kubectl apply -k k8s/
 	@echo "[INFO] First deployment completed."
