@@ -8,6 +8,8 @@
 > 운영 파트
   - Kubernetes 매니페스트(k8s/)와 Argo Rollouts Blue-Green 전략을 작성·자동화(Makefile, CI 워크플로우)
   - Prometheus 모니터링 및 즉시 롤백 체계를 구성
+  - 빌드 시 Slack / Email 연동
+  - Makefile 이용 설정 / 초기화 간편화 
 
 ---
 
