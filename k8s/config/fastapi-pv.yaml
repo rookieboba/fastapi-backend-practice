@@ -2,14 +2,15 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: sqlite-pv
-  namespace: fastapi
 spec:
   capacity:
     storage: 512Mi
   accessModes:
     - ReadWriteOnce
-  volumeMode: Filesystem
   storageClassName: manual
   hostPath:
     path: /mnt/data/sqlite
     type: DirectoryOrCreate
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+
