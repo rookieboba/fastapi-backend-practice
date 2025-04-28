@@ -99,7 +99,7 @@
 
 1. **초기 배포**  
    ```bash
-   make first-deploy
+   make deploy
    ```
 2. **버전 업데이트**  
    ```bash
