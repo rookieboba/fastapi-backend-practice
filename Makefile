@@ -62,6 +62,11 @@ clean:
 	@if [ -n "$$(docker images -q)" ]; then \
 		docker rmi -f $$(docker images -q); \
 	fi
+	@echo "[INFO] Deleting existing PV and PVC..."
+	- rm -rf /mnt/data/sqlite
+	- mkdir -p /mnt/data/sqlite
+	- kubectl delete pvc sqlite-pvc -n fastapi
+	- kubectl delete pv sqlite-pv
 	- kubectl delete ns fastapi argocd argo monitoring 
 	@echo "[INFO] Clean completed."
 
