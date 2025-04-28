@@ -56,19 +56,15 @@
    ```bash
    make first-deploy
    ```
-2. Rollouts Dashboard, Workflows, ArgoCD UI 포트포워딩  
-   ```bash
-   make port-all
-   ```
-3. 신규 버전 프로모션  
+2. 신규 버전 프로모션  
    ```bash
    # 도커 이미지 태깅·푸시 후
    make rollout-promote IMAGE=your-repo/fastapi_app:v2
    make rollout-monitor
    ```
-4. 서비스 상태 확인  
+3. 서비스 상태 확인  
    ```bash
-   kubectl get pods,svc,rollout -l app=fastapi
+   kubectl get pods,svc,rollout -n fastapi
    ```
 
 ---
