@@ -102,11 +102,6 @@ deploy:
 	kubectl get all -n $(NAMESPACE_FASTAPI)
 	kubectl get all -A -o wide
 
-rollout-restart:
-        @echo "[INFO] FastAPI 롤아웃 리스타트 (리비전 bump)…"
-        kubectl argo rollouts restart $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
-
-
 rollout-promote:
 	@echo "[INFO] Promoting FastAPI Rollout…"
 	kubectl argo rollouts promote $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
