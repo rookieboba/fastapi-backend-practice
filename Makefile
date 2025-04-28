@@ -61,37 +61,59 @@ db-check:
 # Kubernetes 배포
 # ===================
 
-clean:
+undeploy:
 	@echo "[INFO] Cleaning Kubernetes resources..."
-	@if [ -n "$$(docker ps -qa)" ]; then \
-		docker stop $$(docker ps -qa); \
-	fi
 
 	@if [ -n "$$(docker ps -qa)" ]; then \
-		docker rm $$(docker ps -qa); \
-	fi
+                docker stop $$(docker ps -qa); \
+        fi
+
+	@if [ -n "$$(docker ps -qa)" ]; then \
+                docker rm $$(docker ps -qa); \
+        fi
 
 	@if [ -n "$$(docker images -q)" ]; then \
-		docker rmi -f $$(docker images -q); \
+                docker rmi -f $$(docker images -q); \
 	fi
-	@echo "[INFO] Deleting existing PV and PVC..."
-	- rm -rf /mnt/data/sqlite
-	- mkdir -p /mnt/data/sqlite
-	- kubectl delete pvc sqlite-pvc -n fastapi || true
-	- kubectl patch pv sqlite-pv -p '{"spec":{"claimRef": null}}' || true
-	- kubectl delete pv sqlite-pv || true
-	- kubectl delete ns fastapi argocd argo monitoring 
-	@echo "[INFO] Clean completed."
+
+	rm -rf /mnt/data/sqlite
+	mkdir -p /mnt/data/sqlite
+
+	# default 네임스페이스에서 argo-rollouts 관련 리소스 삭제
+	kubectl delete svc,deploy,rs -l app.kubernetes.io/name=argo-rollouts -n default
+
+        
+	@echo "[INFO] Deleting all deployed namespaces…"
+	kubectl delete ns fastapi argocd argo monitoring argo-rollouts
+
+        
+	@echo "[INFO] Forcing removal of PVCs (clear finalizers)…"
+	kubectl get pvc -n fastapi -o name | xargs -n1 -I% kubectl patch % -n fastapi --type=merge -p='{"metadata":{"finalizers":[]}}' || true
+	kubectl delete pvc -A --force --grace-period=0 --wait=false || true
+
+	@echo "[INFO] Forcing removal of PVs (clear claimRef & finalizers)…"
+	kubectl delete pv  sqlite-pv
+        
+	@echo "[INFO] Deleting Argo Rollouts CRDs…"
+        
+	kubectl delete crd rollouts.argoproj.io experiments.argoproj.io \
+	  analysisruns.analysis.argoproj.io analysistemplates.analysis.argoproj.io \
+		--ignore-not-found
+        
+	@echo "[INFO] Undeploy complete."
 
 deploy:
 	@echo "[INFO] Creating Namespace"
 	kubectl apply -f k8s/namespace.yaml
 	@echo "[INFO] Installing Argo Rollouts Controller..."
+	kubectl create ns argo-rollouts
 	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
+	kubectl apply -f k8s/argo/install.yaml
 	@echo "[INFO] Applying all k8s manifests..."
 	kubectl apply -k k8s/
 	@echo "[INFO] First deployment completed."
-	kubectl get pods,svc,deploy,rollout -n $(NAMESPACE_FASTAPI)
+	kubectl get all -n $(NAMESPACE_FASTAPI)
+	kubectl get all -o wide
 
 rollout-promote:
 	@echo "[INFO] Promoting FastAPI Rollout..."
@@ -112,7 +134,7 @@ rollout-undo:
 
 
 reset:
-	@$(MAKE) clean
+	@$(MAKE) undeploy 
 	@$(MAKE) deploy
 #	@$(MAKE) deploy-dashboard
 #	@$(MAKE) port-all
