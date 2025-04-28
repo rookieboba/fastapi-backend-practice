@@ -1,33 +1,30 @@
-# k8s/kustomization.yaml (최종 수정본)
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 namespace: fastapi
 
 resources:
-  # - namespace.yaml
+  # 네임스페이스
+  - namespace.yaml
 
-  # rollout 설정
-  - rollout/fastapi-rollout.yaml
+  # 스토리지 (PV, PVC)
+  - config/fastapi-pv.yaml
+  - config/fastapi-pvc.yaml
 
-  # 서비스 설정
+  # 설정 (ConfigMap, Secret)
+  - config/fastapi-configmap.yaml
+  - config/fastapi-secret.yaml
+
+  # 서비스 (fastapi용)
   - service/fastapi-active.yaml
   - service/fastapi-preview.yaml
 
-  # ConfigMap, Secret, PVC
-  - config/fastapi-configmap.yaml
-  - config/fastapi-secret.yaml
-  - config/fastapi-pvc.yaml
+  # 롤아웃 (배포)
+  - rollout/fastapi-rollout.yaml
 
-  # Ingress 설정
-  - ingress/fastapi-ingress.yaml
-
-  # HPA 설정
-  - hpa/fastapi-hpa.yaml
-
-  # 모니터링용 ServiceMonitor
-  - monitoring/fastapi-service-monitor.yaml
-
-  # 네트워크 정책 설정
-  - policy/fastapi-networkpolicy.yaml
+# 선택적으로 나중에 추가할 것 (모니터링, HPA, 네트워크 정책, 인그레스)
+#  - monitoring/fastapi-service-monitor.yaml
+#  - hpa/fastapi-hpa.yaml
+#  - ingress/fastapi-ingress.yaml
+#  - policy/fastapi-networkpolicy.yaml
 
