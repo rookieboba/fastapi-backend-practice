@@ -56,6 +56,9 @@ clean:
 	@if [ "$$(docker images -q)" ]; then docker rmi -f $$(docker images -q); fi
 
 undeploy: clean
+	@Reomve and ReMake for bind
+	rm -rf /mnt/data/sqlite
+	mkdir -p /mnt/data/sqlite
 	@echo "[INFO] Deleting all deployed namespaces…"
 	kubectl delete ns $(NAMESPACE_FASTAPI) argocd argo monitoring $(ARGO_NS) \
 	  --ignore-not-found --grace-period=0 --timeout=30s --wait=false
