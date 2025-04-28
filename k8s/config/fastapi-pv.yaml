@@ -4,7 +4,7 @@ metadata:
   name: sqlite-pv
 spec:
   capacity:
-    storage: 512Mi
+    storage: 256Mi
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
