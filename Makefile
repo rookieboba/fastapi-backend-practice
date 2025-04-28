@@ -67,7 +67,6 @@ clean:
 	- kubectl delete servicemonitor fastapi-service-monitor -n default
 	- kubectl delete ingress fastapi-ingress -n default
 	- kubectl delete networkpolicy fastapi-policy -n default
-	- kubectl delete deploy,svc,rs -l app=argo-rollouts -n argo-rollouts
 	- kubectl delete ns argo-rollouts argocd argo
 	@echo "[INFO] Clean completed."
 
