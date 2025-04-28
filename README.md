@@ -54,7 +54,7 @@
 
 1. 클러스터에 리소스 최초 배포  
    ```bash
-   make first-deploy
+   make deploy
    ```
 2. 신규 버전 프로모션  
    ```bash
