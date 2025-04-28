@@ -59,7 +59,7 @@ clean:
 	@if [ -n "$$(docker images -q)" ]; then \
 		docker rmi -f $$(docker images -q); \
 	fi
-	- kubectl delete ns fastapi argo-rollouts argocd argo
+	- kubectl delete ns fastapi argocd argo
 	@echo "[INFO] Clean completed."
 
 first-deploy:
