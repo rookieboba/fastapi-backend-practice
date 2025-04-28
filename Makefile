@@ -65,10 +65,12 @@ clean:
 first-deploy:
 	@echo "[INFO] Creating Namespace"
 	kubectl apply -f k8s/namespace.yaml
+	@echo "[INFO] Installing Argo Rollouts Controller..."
+	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
 	@echo "[INFO] Applying all k8s manifests..."
 	kubectl apply -k k8s/
 	@echo "[INFO] First deployment completed."
-	kubectl get pods,svc,deploy,rollout
+	kubectl get pods,svc,deploy,rollout -n fastapi
 
 deploy-all: first-deploy deploy-dashboard
 
