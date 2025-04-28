@@ -2,11 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: fastapi-preview
-  namespace: fastapi 
+  namespace: fastapi
+  labels:
+    app: fastapi
+    track: preview
 spec:
   selector:
     app: fastapi
-    track: canary   # 🔥 수정: stable ➔ canary
+    track: stable
   ports:
   - protocol: TCP
     port: 80
