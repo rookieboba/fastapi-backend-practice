@@ -61,6 +61,11 @@ db-check:
 # Kubernetes 배포
 # ===================
 
+clean:
+	@echo "[INFO] Stop & remove all local containers/images"
+	@if [ "$$(docker ps -q)" ]; then docker stop $$(docker ps -q) && docker rm -f $$(docker ps -q); fi
+	@if [ "$$(docker images -q)" ]; then docker rmi -f $$(docker images -q); fi
+
 undeploy:
 	@echo "[INFO] Cleaning Kubernetes resources..."
 
