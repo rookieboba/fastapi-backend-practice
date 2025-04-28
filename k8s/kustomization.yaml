@@ -5,7 +5,7 @@ kind: Kustomization
 namespace: fastapi
 
 resources:
-  - namespace.yaml
+  # - namespace.yaml
 
   # rollout 설정
   - rollout/fastapi-rollout.yaml
