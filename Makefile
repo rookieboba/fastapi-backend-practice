@@ -1,17 +1,29 @@
+# Makefile for FastAPI Blue-Green + Argo Rollouts 자동화
+
 DOCKER_COMPOSE := $(shell command -v docker-compose > /dev/null 2>&1 && echo docker-compose || echo docker compose)
-SERVER_IP := $(shell hostname -I | awk '{print $$1}')
-PORT_FASTAPI_ACTIVE := 30080
+SERVER_IP      := $(shell hostname -I | awk '{print $$1}')
+
+# FastAPI 서비스 노드포트 (NodePort)
+PORT_FASTAPI_ACTIVE  := 30080
 PORT_FASTAPI_PREVIEW := 30081
+
+# Argo Rollouts Dashboard
 PORT_ARGO_ROLLOUTS := 3100
-PORT_ARGO_WORKFLOWS := 2746
-PORT_ARGOCD := 8080
+
+# Argo Workflows 서버 → ClusterIP 80 → 로컬 포트
+PORT_WORKFLOWS_LOCAL  := 2746
+PORT_WORKFLOWS_REMOTE := 80
+
+# ArgoCD 서버 → ClusterIP 80 → 로컬 포트
+PORT_ARGOCD_LOCAL  := 8080
+PORT_ARGOCD_REMOTE := 80
 
 # ===================
-# 🧪 개발 환경
+# 개발 환경
 # ===================
 
 run-dev:
-	uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload -d
+	uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 docker-dev:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up --build -d
@@ -19,43 +31,54 @@ docker-dev:
 	docker ps
 
 docker-down:
-	${DOCKER_COMPOSE} -f docker-compose.dev.yml down
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml down
 	@echo "[INFO] Docker containers stopped."
-	
+
 test:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
-		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=term tests/" -d
+		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=term tests/"
 
 test-cov:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
-		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=html tests/" -d
+		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=html tests/"
 
 # ===================
-# Kubernetes
+# Kubernetes 배포
 # ===================
+
+clean:
+	@echo "[INFO] Cleaning Kubernetes resources..."
+	- kubectl delete rollout fastapi-rollout -n default
+	- kubectl delete svc fastapi-active fastapi-preview -n default
+	- kubectl delete pvc sqlite-pvc -n default
+	- kubectl delete pv sqlite-pv
+	- kubectl delete hpa fastapi-hpa -n default
+	- kubectl delete servicemonitor fastapi-service-monitor -n default
+	- kubectl delete ingress fastapi-ingress -n default
+	- kubectl delete networkpolicy fastapi-policy -n default
+	- kubectl delete deploy,svc,rs -l app=argo-rollouts -n argo-rollouts
+	- kubectl delete ns argo-rollouts argocd argo
+	@echo "[INFO] Clean completed."
 
 first-deploy:
+	@echo "[INFO] Installing Argo Rollouts controller and namespaces..."
 	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
+	@echo "[INFO] Applying all k8s manifests..."
 	kubectl apply -k k8s/
-	kubectl get all
 	@echo "[INFO] First deployment completed."
 	kubectl get pods,svc,deploy,rollout
 
-deploy-all:
-	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
-	kubectl apply -k k8s/
-	kubectl get all
-	@echo "[INFO] Full deployment completed."
-	kubectl get pods,svc,deploy,rollout
+deploy-all: first-deploy deploy-dashboard
 
 deploy-dashboard:
+	@echo "[INFO] Installing Argo Rollouts Dashboard..."
 	kubectl apply -f k8s/argo/argo-rollouts-dashboard-install.yaml
-	@echo "[INFO] Argo Rollouts Dashboard installed from local file."
-	kubectl get deploy -n argo-rollouts
+	kubectl rollout status deployment/argo-rollouts-dashboard -n argo-rollouts
+	@echo "[INFO] Dashboard deployed."
 
 rollout-promote:
+	@echo "[INFO] Promoting FastAPI Rollout..."
 	kubectl argo rollouts promote fastapi-rollout
-	@echo "[INFO] Rollout promoted."
 	kubectl argo rollouts get rollout fastapi-rollout
 
 rollout-monitor:
@@ -64,46 +87,39 @@ rollout-monitor:
 rollout-revision:
 	kubectl argo rollouts get rollout fastapi-rollout --revision
 
+# ===================
+# 포트 포워딩 자동화
+# ===================
+
 port-all:
-	kubectl -n argo-rollouts port-forward deployment/argo-rollouts-dashboard $(PORT_ARGO_ROLLOUTS):3100 & \
-	kubectl -n argo port-forward svc/argo-workflows-server $(PORT_ARGO_WORKFLOWS):2746 & \
-	kubectl -n argocd port-forward svc/argocd-server $(PORT_ARGOCD):8080 & \
+	@echo "[INFO] Cleaning up existing port-forward processes..."
+	- pkill -f "port-forward.*:$(PORT_ARGO_ROLLOUTS):3100"
+	- pkill -f "port-forward.*:$(PORT_WORKFLOWS_LOCAL):$(PORT_WORKFLOWS_REMOTE)"
+	- pkill -f "port-forward.*:$(PORT_ARGOCD_LOCAL):$(PORT_ARGOCD_REMOTE)"
+
+	@echo "[INFO] Starting port-forward..."
+	# 1) Argo Rollouts Dashboard → localhost:3100
+	kubectl -n argo-rollouts port-forward deployment/argo-rollouts-dashboard \
+		$(PORT_ARGO_ROLLOUTS):3100 &
+
+	# 2) Argo Workflows UI → localhost:2746
+	kubectl -n argo port-forward svc/argo-workflows-server \
+		$(PORT_WORKFLOWS_LOCAL):$(PORT_WORKFLOWS_REMOTE) &
+
+	# 3) ArgoCD UI → localhost:8080
+	kubectl -n argocd port-forward svc/argocd-server \
+		$(PORT_ARGOCD_LOCAL):$(PORT_ARGOCD_REMOTE) &
+
 	wait
-	@echo "[INFO] Port Forwarded: Rollouts Dashboard -> $(PORT_ARGO_ROLLOUTS), Workflows UI -> $(PORT_ARGO_WORKFLOWS), ArgoCD UI -> $(PORT_ARGOCD)"
-
-# ===================
-# 🔧 기타
-# ===================
-
-clean:
-	# 삭제 - fastapi 앱 관련 리소스 (default namespace)
-	-kubectl delete rollout fastapi-rollout -n default || true
-	-kubectl delete svc fastapi-active -n default || true
-	-kubectl delete svc fastapi-preview -n default || true
-	-kubectl delete pvc sqlite-pvc -n default || true
-	-kubectl delete pv sqlite-pv || true
-	-kubectl delete hpa fastapi-hpa -n default || true
-	-kubectl delete servicemonitor fastapi-service-monitor -n default || true
-	-kubectl delete ingress fastapi-ingress -n default || true
-	-kubectl delete networkpolicy fastapi-policy -n default || true
-
-	# 삭제 - argo-rollouts 관련 리소스 (argo-rollouts namespace)
-	-kubectl delete deploy argo-rollouts-controller -n argo-rollouts || true
-	-kubectl delete svc argo-rollouts-server -n argo-rollouts || true
-	-kubectl delete deploy argo-rollouts-dashboard -n argo-rollouts || true
-	-kubectl delete svc argo-rollouts-dashboard -n argo-rollouts || true
-
-	# argo 네임스페이스 자체 삭제
-	-kubectl delete ns argo-rollouts || true
-	-kubectl delete ns argo || true
-	-kubectl delete ns argocd || true
-
-	@echo "✅ Clean completed: fastapi rollout, services, PVC, PV, argo-rollouts controller/dashboard."
+	@echo "[INFO] Port Forwarded:"
+	@echo "  - Rollouts Dashboard → http://localhost:$(PORT_ARGO_ROLLOUTS)"
+	@echo "  - Workflows UI       → http://localhost:$(PORT_WORKFLOWS_LOCAL)"
+	@echo "  - ArgoCD UI          → http://localhost:$(PORT_ARGOCD_LOCAL)"
 
 reset:
-	make clean
-	make deploy-all
-	make deploy-dashboard
-	make port-all
-	@echo "[INFO] Reset and redeploy completed including dashboard installation and port forwarding."
-	kubectl get pods,svc,deploy,rollout
+	@$(MAKE) clean
+	@$(MAKE) deploy-all
+	@$(MAKE) deploy-dashboard
+	@$(MAKE) port-all
+	@echo "[INFO] Reset and redeploy completed."
+
