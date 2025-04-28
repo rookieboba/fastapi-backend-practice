@@ -55,7 +55,6 @@
 1. 클러스터에 리소스 최초 배포  
    ```bash
    make first-deploy
-   make deploy-dashboard
    ```
 2. Rollouts Dashboard, Workflows, ArgoCD UI 포트포워딩  
    ```bash
@@ -112,7 +111,6 @@
 1. **초기 배포**  
    ```bash
    make first-deploy
-   make deploy-dashboard
    ```
 2. **버전 업데이트**  
    ```bash
@@ -131,12 +129,11 @@
 |명령                   |설명                              |
 |----------------------|---------------------------------|
 |`make first-deploy`     |리소스 최초 배포                       |
-|`make deploy-dashboard`|Rollouts Dashboard 설치              |
 |`make rollout-promote`  |Green→Active 트래픽 전환               |
 |`make rollout-monitor`  |Rollout 상태 실시간 모니터링           |
 |`make port-all`         |UI 포트포워딩 (Rollouts/Workflows/ArgoCD) |
 |`make clean`            |관련 리소스 일괄 삭제                  |
-|`make reset`            |clean→first-deploy→deploy-dashboard→port-all 자동 실행 |
+|`make reset`            |clean→first-deploy→port-all 자동 실행 |
 
 ---
 
