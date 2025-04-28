@@ -101,15 +101,11 @@
    ```bash
    make deploy
    ```
-2. **버전 업데이트**  
+2. **버전 확인**  
    ```bash
-   make rollout-promote IMAGE=your-repo/fastapi_app:v2
-   make rollout-monitor
+   make rollout-promote
    ```
-3. **프로모션**  
-   ```bash
-   kubectl argo rollouts promote fastapi-rollout
-   ```
+
 
 ---
 
@@ -117,24 +113,12 @@
 
 |명령                   |설명                              |
 |----------------------|---------------------------------|
-|`make first-deploy`     |리소스 최초 배포                       |
+|`make deploy`     |리소스 최초 배포                       |
 |`make rollout-promote`  |Green→Active 트래픽 전환               |
 |`make rollout-monitor`  |Rollout 상태 실시간 모니터링           |
 |`make clean`            |관련 리소스 일괄 삭제                  |
-|`make reset`            |clean→first-deploy→port-all 자동 실행 |
 
 ---
-
-## 롤백 & 클린업
-
-- **롤백**:  
-  ```bash
-  kubectl argo rollouts undo rollout/fastapi-rollout
-  ```
-- **전체 정리**:  
-  ```bash
-  make clean
-  ```
 
 ---
 
