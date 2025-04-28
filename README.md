@@ -45,7 +45,7 @@
    ```
 4. 로컬 브라우저 확인  
    ```
-   http://localhost:8000/docs
+   http://<서버 IP>:8000/docs
    ```
 
 ---
