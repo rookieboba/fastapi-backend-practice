@@ -7,20 +7,6 @@ SERVER_IP      := $(shell hostname -I | awk '{print $$1}')
 PORT_FASTAPI_ACTIVE  := 30080
 PORT_FASTAPI_PREVIEW := 30081
 
-NAMESPACE_FASTAPI ?= fastapi
-ROLLOUT_NAME ?= fastapi-rollout
-
-# Argo Rollouts Dashboard
-PORT_ARGO_ROLLOUTS := 3100
-
-# Argo Workflows 서버 → ClusterIP 80 → 로컬 포트
-PORT_WORKFLOWS_LOCAL  := 2746
-PORT_WORKFLOWS_REMOTE := 80
-
-# ArgoCD 서버 → ClusterIP 80 → 로컬 포트
-PORT_ARGOCD_LOCAL  := 8080
-PORT_ARGOCD_REMOTE := 80
-
 ARGO_NS            ?= argo-rollouts
 NAMESPACE_FASTAPI  ?= fastapi
 ROLLOUT_NAME       ?= fastapi-rollout
@@ -46,20 +32,19 @@ docker-down:
 # ===================
 
 test:
-	@echo "[INFO] 실행: pytest 단위 테스트 + 커버리지 측정 (터미널 출력)"
+	@echo "[INFO] pytest 단위 테스트 + 커버리지 측정"
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=term tests/"
 
 test-cov:
-	@echo "[INFO] 실행: pytest 단위 테스트 + 커버리지 측정 (HTML 리포트 생성)"
+	@echo "[INFO] pytest 단위 테스트 + 커버리지 HTML 리포트"
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
 		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=html tests/"
 
 db-check:
-	@echo "[INFO] 실행: 개발용 컨테이너 내부 SQLite 데이터베이스 확인"
+	@echo "[INFO] 개발용 컨테이너 내부 SQLite 확인"
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml exec web \
 		bash -c "sqlite3 /app/data/db.sqlite3 '.tables'; sqlite3 /app/data/db.sqlite3 'SELECT * FROM payments;'"
-
 
 # ===================
 # Kubernetes 배포
@@ -71,50 +56,51 @@ clean:
 	@if [ "$$(docker images -q)" ]; then docker rmi -f $$(docker images -q); fi
 
 undeploy: clean
-	rm -rf /mnt/data/sqlite
-	mkdir -p /mnt/data/sqlite
-
-	
-
-	# default 네임스페이스에서 argo-rollouts 관련 리소스 삭제
-	kubectl delete svc,deploy,rs -l app.kubernetes.io/name=$(ROLLOUT_NAME) -n default
-
-        
 	@echo "[INFO] Deleting all deployed namespaces…"
-	kubectl delete ns fastapi argocd argo monitoring argo-rollouts
+	kubectl delete ns $(NAMESPACE_FASTAPI) argocd argo monitoring $(ARGO_NS) \
+	  --ignore-not-found --grace-period=0 --timeout=30s --wait=false
 
-        
-	@echo "[INFO] Forcing removal of PVCs (clear finalizers)…"
-	kubectl get pvc -n fastapi -o name | xargs -n1 -I% kubectl patch % -n fastapi --type=merge -p='{"metadata":{"finalizers":[]}}' || true
-	kubectl delete pvc -A --force --grace-period=0 --wait=false || true
+	@echo "[INFO] Clearing finalizers on $(NAMESPACE_FASTAPI) namespace (if stuck)…"
+	kubectl get ns $(NAMESPACE_FASTAPI) -o json \
+	  | jq '.spec.finalizers=[]' \
+	  | kubectl apply -f - || true
+	kubectl delete ns $(NAMESPACE_FASTAPI) --ignore-not-found || true
 
-	@echo "[INFO] Forcing removal of PVs (clear claimRef & finalizers)…"
-	kubectl delete pv  sqlite-pv
-        
+	@echo "[INFO] Forcing removal of $(NAMESPACE_FASTAPI) PVCs…"
+	kubectl get pvc -n $(NAMESPACE_FASTAPI) -o name \
+	  | xargs -r -n1 kubectl patch --type=merge -p='{"metadata":{"finalizers":[]}}' -n $(NAMESPACE_FASTAPI)
+	kubectl delete pvc --all -n $(NAMESPACE_FASTAPI) --force --grace-period=0 --ignore-not-found
+
+	@echo "[INFO] Forcing removal of PVs…"
+	kubectl get pv -o name \
+	  | xargs -r -n1 kubectl patch --type=merge -p='{"spec":{"claimRef":null},"metadata":{"finalizers":[]}}'
+	kubectl delete pv -l app=fastapi --force --grace-period=0 --ignore-not-found
+
 	@echo "[INFO] Deleting Argo Rollouts CRDs…"
-        
 	kubectl delete crd rollouts.argoproj.io experiments.argoproj.io \
 	  analysisruns.analysis.argoproj.io analysistemplates.analysis.argoproj.io \
-		--ignore-not-found
-        
+	  --ignore-not-found
+
 	@echo "[INFO] Undeploy complete."
-	kubectl get all -o wide
+	kubectl get all -A -o wide
 
 deploy:
-	@echo "[INFO] Creating Namespace"
+	@echo "[INFO] Creating namespaces"
 	kubectl apply -f k8s/namespace.yaml
-	@echo "[INFO] Installing Argo Rollouts Controller..."
-	kubectl create ns argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
-	kubectl apply -f k8s/argo/install.yaml
-	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
-	@echo "[INFO] Applying all k8s manifests..."
+
+	@echo "[INFO] Installing Argo Rollouts Controller…"
+	kubectl create ns $(ARGO_NS) --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -n $(ARGO_NS) -f k8s/argo/install.yaml
+
+	@echo "[INFO] Applying all k8s manifests…"
 	kubectl apply -k k8s/
+
 	@echo "[INFO] First deployment completed."
 	kubectl get all -n $(NAMESPACE_FASTAPI)
-	kubectl get all -o wide
+	kubectl get all -A -o wide
 
 rollout-promote:
-	@echo "[INFO] Promoting FastAPI Rollout..."
+	@echo "[INFO] Promoting FastAPI Rollout…"
 	kubectl argo rollouts promote $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
 	kubectl argo rollouts get rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
 
@@ -130,11 +116,8 @@ rollout-restart:
 rollout-undo:
 	kubectl argo rollouts undo $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
 
-
 reset:
-	@$(MAKE) undeploy 
+	@$(MAKE) undeploy
 	@$(MAKE) deploy
-#	@$(MAKE) deploy-dashboard
-#	@$(MAKE) port-all
 	@echo "[INFO] Reset and redeploy completed."
 
