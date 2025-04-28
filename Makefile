@@ -48,9 +48,17 @@ test-cov:
 
 clean:
 	@echo "[INFO] Cleaning Kubernetes resources..."
-	- docker stop $(docker ps -qa)
-	- docker rm $(docker ps -qa)
-	- docker rmi -f $(docker images -q)
+	@if [ -n "$$(docker ps -qa)" ]; then \
+		docker stop $$(docker ps -qa); \
+	fi
+
+	@if [ -n "$$(docker ps -qa)" ]; then \
+		docker rm $$(docker ps -qa); \
+	fi
+
+	@if [ -n "$$(docker images -q)" ]; then \
+		docker rmi -f $$(docker images -q); \
+	fi
 	- kubectl delete rollout fastapi-rollout -n default
 	- kubectl delete svc fastapi-active fastapi-preview -n default
 	- kubectl delete pvc sqlite-pvc -n default
