@@ -21,6 +21,10 @@ PORT_WORKFLOWS_REMOTE := 80
 PORT_ARGOCD_LOCAL  := 8080
 PORT_ARGOCD_REMOTE := 80
 
+ARGO_NS            ?= argo-rollouts
+NAMESPACE_FASTAPI  ?= fastapi
+ROLLOUT_NAME       ?= fastapi-rollout
+
 # ===================
 # 개발 환경
 # ===================
@@ -66,26 +70,14 @@ clean:
 	@if [ "$$(docker ps -q)" ]; then docker stop $$(docker ps -q) && docker rm -f $$(docker ps -q); fi
 	@if [ "$$(docker images -q)" ]; then docker rmi -f $$(docker images -q); fi
 
-undeploy:
-	@echo "[INFO] Cleaning Kubernetes resources..."
-
-	@if [ -n "$$(docker ps -qa)" ]; then \
-                docker stop $$(docker ps -qa); \
-        fi
-
-	@if [ -n "$$(docker ps -qa)" ]; then \
-                docker rm $$(docker ps -qa); \
-        fi
-
-	@if [ -n "$$(docker images -q)" ]; then \
-                docker rmi -f $$(docker images -q); \
-	fi
-
+undeploy: clean
 	rm -rf /mnt/data/sqlite
 	mkdir -p /mnt/data/sqlite
 
+	
+
 	# default 네임스페이스에서 argo-rollouts 관련 리소스 삭제
-	kubectl delete svc,deploy,rs -l app.kubernetes.io/name=argo-rollouts -n default
+	kubectl delete svc,deploy,rs -l app.kubernetes.io/name=$(ROLLOUT_NAME) -n default
 
         
 	@echo "[INFO] Deleting all deployed namespaces…"
@@ -106,14 +98,15 @@ undeploy:
 		--ignore-not-found
         
 	@echo "[INFO] Undeploy complete."
+	kubectl get all -o wide
 
 deploy:
 	@echo "[INFO] Creating Namespace"
 	kubectl apply -f k8s/namespace.yaml
 	@echo "[INFO] Installing Argo Rollouts Controller..."
-	kubectl create ns argo-rollouts
-	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
+	kubectl create ns argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f k8s/argo/install.yaml
+	kubectl apply -f k8s/argo/argo-rollouts-install.yaml
 	@echo "[INFO] Applying all k8s manifests..."
 	kubectl apply -k k8s/
 	@echo "[INFO] First deployment completed."
