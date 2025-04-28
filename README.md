@@ -58,7 +58,7 @@
    ```
 2. 서비스 상태 확인  
    ```bash
-   kubectl get all -n fastapi -o wide
+   kubectl rollout-promote
    ```
 
 ---
@@ -129,4 +129,3 @@
 |노드 NotReady       |kubelet CSR CN mismatch      |`rm /var/lib/kubelet/pki/* && systemctl restart kubelet` 후 CSR 승인|
 |Pod CrashLoopBackOff|CMD/Probe 포트 불일치        |Rollout manifest에 `command` 명시 & Probe 포트 수정|
 |ImagePullBackOff  |이미지명/태그 오류             |`make rollout-promote IMAGE=…` 또는 매니페스트 수정|
-|포트포워딩 실패     |포트 점유 중                  |`pkill -f port-forward` 후 `make port-all`           |
