@@ -1,18 +1,21 @@
+version: "3.8"
+
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: fastapi-dev
+    container_name: fastapi-dev     # added container name
     ports:
-      - "${APP_PORT}:8000"
+      - "${APP_PORT:-1015}:8000"     # mapping 1015
     volumes:
-      - ./app:/app/app          # ✅ Python 소스
-      - ./data:/app/data        # ✅ DB 파일
-      - ./sqlite3:/app/sqlite3  # ✅ 초기화 SQL
-      - ./tests:/app/tests      # ✅ 테스트 코드
-      - ./htmlcov:/app/htmlcov  # ✅ 커버리지 리포트
+      - ./app:/app/app               # ✅ Python 소스코드
+      - ./data:/app/data             # ✅ DB 파일 (SQLite)
+      - ./sqlite3:/app/sqlite3        # ✅ DB 초기화 스크립트
+      - ./tests:/app/tests            # ✅ 테스트 코드
+      - ./htmlcov:/app/htmlcov        # ✅ 커버리지 결과
     env_file:
       - .env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped           # ✅ 서버 재부팅 후 자동 복구
 
