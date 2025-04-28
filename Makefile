@@ -83,35 +83,6 @@ rollout-monitor:
 rollout-revision:
 	kubectl argo rollouts get rollout fastapi-rollout --revision
 
-# ===================
-# 포트 포워딩 자동화
-# ===================
-
-port-all:
-	@echo "[INFO] Cleaning up existing port-forward processes..."
-	- pkill -f "port-forward.*:$(PORT_ARGO_ROLLOUTS):3100"
-	- pkill -f "port-forward.*:$(PORT_WORKFLOWS_LOCAL):$(PORT_WORKFLOWS_REMOTE)"
-	- pkill -f "port-forward.*:$(PORT_ARGOCD_LOCAL):$(PORT_ARGOCD_REMOTE)"
-
-	@echo "[INFO] Starting port-forward..."
-	# 1) Argo Rollouts Dashboard → localhost:3100
-	kubectl -n argo-rollouts port-forward deployment/argo-rollouts-dashboard \
-		$(PORT_ARGO_ROLLOUTS):3100 &
-
-	# 2) Argo Workflows UI → localhost:2746
-	kubectl -n argo port-forward svc/argo-workflows-server \
-		$(PORT_WORKFLOWS_LOCAL):$(PORT_WORKFLOWS_REMOTE) &
-
-	# 3) ArgoCD UI → localhost:8080
-	kubectl -n argocd port-forward svc/argocd-server \
-		$(PORT_ARGOCD_LOCAL):$(PORT_ARGOCD_REMOTE) &
-
-	wait
-	@echo "[INFO] Port Forwarded:"
-	@echo "  - Rollouts Dashboard → http://localhost:$(PORT_ARGO_ROLLOUTS)"
-	@echo "  - Workflows UI       → http://localhost:$(PORT_WORKFLOWS_LOCAL)"
-	@echo "  - ArgoCD UI          → http://localhost:$(PORT_ARGOCD_LOCAL)"
-
 reset:
 	@$(MAKE) clean
 	@$(MAKE) deploy-all
