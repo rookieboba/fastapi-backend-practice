@@ -65,7 +65,7 @@ clean:
 	- kubectl delete ns fastapi argocd argo
 	@echo "[INFO] Clean completed."
 
-first-deploy:
+deploy:
 	@echo "[INFO] Creating Namespace"
 	kubectl apply -f k8s/namespace.yaml
 	@echo "[INFO] Installing Argo Rollouts Controller..."
@@ -95,8 +95,8 @@ rollout-undo:
 
 reset:
 	@$(MAKE) clean
-	@$(MAKE) deploy-all
-	@$(MAKE) deploy-dashboard
-	@$(MAKE) port-all
+	@$(MAKE) deploy
+#	@$(MAKE) deploy-dashboard
+#	@$(MAKE) port-all
 	@echo "[INFO] Reset and redeploy completed."
 
