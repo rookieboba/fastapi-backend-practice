@@ -130,26 +130,8 @@
 |`make first-deploy`     |리소스 최초 배포                       |
 |`make rollout-promote`  |Green→Active 트래픽 전환               |
 |`make rollout-monitor`  |Rollout 상태 실시간 모니터링           |
-|`make port-all`         |UI 포트포워딩 (Rollouts/Workflows/ArgoCD) |
 |`make clean`            |관련 리소스 일괄 삭제                  |
 |`make reset`            |clean→first-deploy→port-all 자동 실행 |
-
----
-
-## UI 접속
-
-- **서버 내부**:  
-  ```bash
-  make port-all
-  ```
-  - Rollouts Dashboard → http://localhost:3100  
-  - Workflows UI       → http://localhost:2746  
-  - ArgoCD UI          → http://localhost:8080  
-
-- **외부 개발 PC**:  
-  ```bash
-  ssh -L 3100:localhost:3100 -L 2746:localhost:2746 -L 8080:localhost:8080 user@SERVER_IP
-  ```
 
 ---
 
