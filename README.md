@@ -101,7 +101,6 @@
   - CI: GitHub Actions 워크플로우  
 - **모니터링 & 복구**  
   - Prometheus ServiceMonitor  
-  - Rollouts Dashboard  
   - 롤백: `kubectl argo rollouts undo rollout/fastapi-rollout`  
 
 ---
