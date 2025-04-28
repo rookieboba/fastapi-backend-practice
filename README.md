@@ -77,6 +77,8 @@
    make undeploy
    ```
 
+![image](https://github.com/user-attachments/assets/df4693c8-43ee-49db-9f59-c701fbc6bec0)
+
 ---
 
 ## 프로젝트 구조
