@@ -11,17 +11,17 @@ spec:
   selector:
     matchLabels:
       app: fastapi
-      track: stable   # ✅ 추가!
+      track: stable
   template:
     metadata:
       labels:
         app: fastapi
-        track: stable  # ✅ 추가!
+        track: stable
     spec:
       containers:
       - name: fastapi
         image: terrnabin/fastapi_app:v1
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
         ports:
         - containerPort: 8000
@@ -31,9 +31,24 @@ spec:
             port: 8000
           initialDelaySeconds: 2
           periodSeconds: 5
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        volumeMounts:
+        - name: sqlite-storage
+          mountPath: /app/db
+      volumes:
+      - name: sqlite-storage
+        persistentVolumeClaim:
+          claimName: sqlite-pvc
   strategy:
     blueGreen:
       activeService: fastapi-active
       previewService: fastapi-preview
       autoPromotionEnabled: false
+      scaleDownDelaySeconds: 30
 
