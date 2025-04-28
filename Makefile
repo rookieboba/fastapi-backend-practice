@@ -7,6 +7,9 @@ SERVER_IP      := $(shell hostname -I | awk '{print $$1}')
 PORT_FASTAPI_ACTIVE  := 30080
 PORT_FASTAPI_PREVIEW := 30081
 
+NAMESPACE_FASTAPI ?= fastapi
+ROLLOUT_NAME ?= fastapi-rollout
+
 # Argo Rollouts Dashboard
 PORT_ARGO_ROLLOUTS := 3100
 
@@ -70,20 +73,25 @@ first-deploy:
 	@echo "[INFO] Applying all k8s manifests..."
 	kubectl apply -k k8s/
 	@echo "[INFO] First deployment completed."
-	kubectl get pods,svc,deploy,rollout -n fastapi
-
-deploy-all: first-deploy deploy-dashboard
+	kubectl get pods,svc,deploy,rollout -n $(NAMESPACE_FASTAPI)
 
 rollout-promote:
 	@echo "[INFO] Promoting FastAPI Rollout..."
-	kubectl argo rollouts promote fastapi-rollout
-	kubectl argo rollouts get rollout fastapi-rollout
+	kubectl argo rollouts promote $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
+	kubectl argo rollouts get rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
 
 rollout-monitor:
-	kubectl argo rollouts get rollout fastapi-rollout --watch
+	kubectl argo rollouts get rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI) --watch
 
 rollout-revision:
-	kubectl argo rollouts get rollout fastapi-rollout --revision
+	kubectl argo rollouts get rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI) --revision
+
+rollout-restart:
+	kubectl argo rollouts restart $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
+
+rollout-undo:
+	kubectl argo rollouts undo $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
+
 
 reset:
 	@$(MAKE) clean
