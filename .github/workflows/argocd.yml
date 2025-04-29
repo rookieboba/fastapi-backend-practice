@@ -47,15 +47,24 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set up kubectl
-      id: k8s
+    - name: Install kubectl
       uses: azure/setup-kubectl@v3
       with:
-        kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+        version: 'latest'
+
+    - name: Load kubeconfig
+      # base64 로 저장된 KUBE_CONFIG_DATA를 실제 ~/.kube/config으로 복원
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > ~/.kube/config
+
+    - name: Verify K8s connectivity
+      run: kubectl get nodes
 
     - name: Sync ArgoCD Application
       env:
-        KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
+        # ensure ArgoCD CLI uses the same kubeconfig
+        KUBECONFIG: ~/.kube/config
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
         ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
       run: |
