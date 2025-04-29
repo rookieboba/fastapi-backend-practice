@@ -117,13 +117,12 @@
 
 ## CI/CD 워크플로우
 
-1. **코드 푸시 → GitHub Actions**  
-2. **테스트 통과 시**  
+1. **개발 빌드**  
+2. **QA 테스트 통과 시**  
    - Docker Hub에 이미지 태그 `vX.Y.Z` 푸시  
 3. **클러스터에 새 이미지 롤아웃**  
    ```bash
-   docker build -t terrnabin/fastapi_app:v2 .
-   docker push terrnabin/fastapi_app:v2
+   docker pull terrnabin/fastapi_app:v2
    kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
    kubectl argo rollouts get rollout fastapi-rollout -n fastapi
    ```
