@@ -45,20 +45,20 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set up kubeconfig
-      run: |
-        mkdir -p $HOME/.kube
-        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
-      env:
-        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+#    - name: Set up kubeconfig
+#      run: |
+#        mkdir -p $HOME/.kube
+#        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+#      env:
+#        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
 
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: latest
+#    - name: Install kubectl
+#      uses: azure/setup-kubectl@v3
+#      with:
+#        version: latest
 
-    - name: Verify Kubernetes connectivity
-      run: kubectl get nodes
+#    - name: Verify Kubernetes connectivity
+#      run: kubectl get nodes
 
     - name: Download ArgoCD CLI
       run: |
