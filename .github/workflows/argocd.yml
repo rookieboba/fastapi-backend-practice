@@ -6,47 +6,37 @@ permissions:
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+
+env:
+  # 공인 IP 를 시크릿으로부터 읽어서 전체 job 에 설정
+  PUBLIC_IP: ${{ secrets.PUBLIC_IP }}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: production
 
+    env:
+      # workflow-level 환경변수
+      PUBLIC_IP: ${{ secrets.PUBLIC_IP }}
+
     steps:
-    # 1) 코드 체크아웃
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        persist-credentials: true
+        persist-credentials: true   # git push 를 위해 반드시 필요
 
-    # 2) kubeconfig 세팅 (secrets.KUBE_CONFIG_DATA 에 cluster admin kubeconfig 의 base64 인코딩 값이 들어 있어야 합니다)
-    - name: Set up kubeconfig
-      run: |
-        mkdir -p $HOME/.kube
-        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
-        chmod 600 $HOME/.kube/config
+    - name: Show PUBLIC_IP (masked)
+      run: echo "Public IP → $PUBLIC_IP"
 
-    # 3) K8s 연결 확인
-    - name: Verify K8s connectivity
-      run: kubectl get nodes
-
-    # 4) Docker Hub 로그인
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # 5) yq 설치 (Ubuntu 환경)
-    - name: Install yq
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y yq
-
-    # 6) 이미지 빌드 & 푸시
     - name: Build and push Docker image
       run: |
         IMAGE=terrnabin/fastapi_app
@@ -54,39 +44,53 @@ jobs:
         docker build --build-arg VERSION=$TAG -t $IMAGE:$TAG .
         docker push $IMAGE:$TAG
 
-    # 7) K8s manifest 에 새 태그 반영
     - name: Bump image in K8s manifests
       run: |
-        IMAGE=terrnabin/fastapi_app
         TAG=${{ github.sha }}
-        # 반드시 -y (yaml) 플래그를 함께 써야 in-place 동작합니다
-        yq e -i -y ".spec.template.spec.containers[0].image = \"${IMAGE}:${TAG}\"" k8s/rollout/fastapi-rollout.yaml
+        # yq in-place 할 때 --yaml-output(-y) 옵션을 반드시 추가해야 오류 없음
+        yq eval -i --yaml-output \
+          '.spec.template.spec.containers[0].image = "terrnabin/fastapi_app:'"$TAG"'"' \
+          k8s/rollout/fastapi-rollout.yaml
+
         git config user.name  "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add k8s/rollout/fastapi-rollout.yaml
-        git commit -m "ci: bump fastapi image to $TAG"
         git pull --rebase origin main
+        git add k8s/rollout/fastapi-rollout.yaml
+        git commit -m "ci: bump image to $TAG"
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    # 8) Argo CD CLI 다운로드
-    - name: Install ArgoCD CLI
+    - name: Set up kubectl
+      id: k8s
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+        kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+
+    - name: Verify K8s connectivity
+      run: kubectl get nodes
+      env:
+        KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
+
+    - name: Sync ArgoCD Application
+      env:
+        KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
+        ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+        ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
       run: |
+        # download argocd CLI
         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x argocd
 
-    # 9) Argo CD 로그인 & 동기화
-    - name: Sync ArgoCD Application
-      env:
-        ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}   # ex: your.pub.ip:9999
-        ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}    # ci-user 가 생성한 token
-      run: |
-        # server에 TLS 검증 스킵 (--insecure) 은 필요에 따라 추가하세요
+        # login using token via port-forward (insecure TLS skip)
         ./argocd login $ARGOCD_SERVER \
           --grpc-web \
           --auth-token $ARGOCD_TOKEN \
+          --port-forward \
+          --port-forward-namespace argocd \
           --insecure
 
+        # sync and wait
         ./argocd app sync fastapi-app
         ./argocd app wait fastapi-app --health
