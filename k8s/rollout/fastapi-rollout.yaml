@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: fastapi
-          image: terrnabin/fastapi_app:9ebb40341e93f5644609748598f5282188c8738c
+          image: terrnabin/fastapi_app:0a039a43bd2ca7fa97b09fc781d03109bf4cb207
           imagePullPolicy: IfNotPresent
           command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
           ports:
