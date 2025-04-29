@@ -19,37 +19,36 @@ spec:
         track: stable
     spec:
       containers:
-      - name: fastapi
-        image: terrnabin/fastapi_app:v1
-        imagePullPolicy: IfNotPresent
-        command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-        ports:
-        - containerPort: 8000
-        readinessProbe:
-          httpGet:
-            path: /
-            #path: /health
-            port: 8000
-          initialDelaySeconds: 2
-          periodSeconds: 5
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "500m"
-            memory: "256Mi"
-        volumeMounts:
-        - name: sqlite-storage
-          mountPath: /app/db
+        - name: fastapi
+          image: terrnabin/fastapi_app:ff9b19b106354e761459a3747fbb0c0bc6388dbe
+          imagePullPolicy: IfNotPresent
+          command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /
+              #path: /health
+              port: 8000
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: sqlite-storage
+              mountPath: /app/db
       volumes:
-      - name: sqlite-storage
-        persistentVolumeClaim:
-          claimName: sqlite-pvc
+        - name: sqlite-storage
+          persistentVolumeClaim:
+            claimName: sqlite-pvc
   strategy:
     blueGreen:
       activeService: fastapi-active
       previewService: fastapi-preview
       autoPromotionEnabled: false
       scaleDownDelaySeconds: 30
-
