@@ -93,7 +93,7 @@ deploy:
 
 	@echo "[INFO] Installing Argo Rollouts Controller…"
 	kubectl create ns $(ARGO_NS) --dry-run=client -o yaml | kubectl apply -f -
-	#kubectl apply -n $(ARGO_NS) -f k8s/argo/install.yaml
+	kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 	kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
 
 	@echo "[INFO] Applying all k8s manifests…"
