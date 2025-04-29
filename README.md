@@ -72,7 +72,7 @@
      ```bash
     kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
     kubectl apply -k k8s/ -n fastapi
-    make rollout-monitor
+    docker images
     ```
 4. 버전 승격 (새 이미지 적용)
    ```bash
