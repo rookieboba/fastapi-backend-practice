@@ -1,4 +1,7 @@
 #.github/workflows/argocd.yml
+#GitHub 저장소에 코드가 푸시되면,
+# Docker 이미지를 빌드하고 K8s 매니페스트에 반영한 후,
+# ArgoCD CLI를 통해 내부 Kubernetes 클러스터에 앱을 자동 배포(GitOps) 하는 것.
 name: CI/CD to ArgoCD
 
 permissions:
