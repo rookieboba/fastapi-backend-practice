@@ -13,6 +13,9 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: production
+    # 공통 환경 변수로 이미지 레포지토리 위치를 alias 처리
+    env:
+      IMAGE: terrnabin/fastapi_app
 
     steps:
     - name: Checkout code
@@ -29,7 +32,6 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        IMAGE=terrnabin/fastapi_app
         TAG=${{ github.sha }}
         docker build --build-arg VERSION=$TAG -t $IMAGE:$TAG .
         docker push $IMAGE:$TAG
@@ -37,7 +39,7 @@ jobs:
     - name: Bump image in K8s manifests
       run: |
         TAG=${{ github.sha }}
-        yq e -i ".spec.template.spec.containers[0].image = \"terrnabin/fastapi_app:$TAG\"" k8s/rollout/fastapi-rollout.yaml
+        yq e -i ".spec.template.spec.containers[0].image = \"$IMAGE:$TAG\"" k8s/rollout/fastapi-rollout.yaml
         git config user.name  "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add k8s/rollout/fastapi-rollout.yaml
@@ -47,24 +49,18 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Install kubectl
+    - name: Install kubectl & load kubeconfig
       uses: azure/setup-kubectl@v3
       with:
         version: 'latest'
-
-    - name: Load kubeconfig
-      # base64 로 저장된 KUBE_CONFIG_DATA를 실제 ~/.kube/config으로 복원
-      run: |
-        mkdir -p ~/.kube
-        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > ~/.kube/config
+        kubeconfig-data: ${{ secrets.KUBE_CONFIG_DATA }}
 
     - name: Verify K8s connectivity
       run: kubectl get nodes
 
     - name: Sync ArgoCD Application
       env:
-        # ensure ArgoCD CLI uses the same kubeconfig
-        KUBECONFIG: ~/.kube/config
+        KUBECONFIG: ${{ runner.home }}/.kube/config
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
         ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
       run: |
