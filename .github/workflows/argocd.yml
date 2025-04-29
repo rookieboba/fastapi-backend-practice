@@ -1,3 +1,4 @@
+#.github/workflows/argocd.yml
 name: CI/CD to ArgoCD
 
 permissions:
@@ -45,21 +46,23 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+# 이 부분부터 문제
+# GitHub Actions는 퍼블릭 클라우드에서 실행. 사설 IP(192.168.x.x, 10.x.x.x)로 접근 불가
 #    - name: Set up kubeconfig
 #      run: |
 #        mkdir -p $HOME/.kube
 #        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
 #      env:
 #        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-
+#
 #    - name: Install kubectl
-#      uses: azure/setup-kubectl@v3
+##      uses: azure/setup-kubectl@v3
 #      with:
 #        version: latest
 
 #    - name: Verify Kubernetes connectivity
 #      run: kubectl get nodes
-
+#
     - name: Download ArgoCD CLI
       run: |
         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
@@ -67,9 +70,10 @@ jobs:
 
     - name: ArgoCD Login & Sync
       env:
-        ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+        ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }} 
         ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
+        # 공인 IP 접근 부분 (공인IP:10443)
       run: |
-        ./argocd login $ARGOCD_SERVER --auth-token $ARGOCD_TOKEN --grpc-web
+        ./argocd login $ARGOCD_SERVER --auth-token $ARGOCD_TOKEN --grpc-web 
         ./argocd app sync fastapi-app
         ./argocd app wait fastapi-app --health --timeout 120
