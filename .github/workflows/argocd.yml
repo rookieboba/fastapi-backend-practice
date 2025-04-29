@@ -18,7 +18,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0        # fetch full history for rebase
+        fetch-depth: 0
         persist-credentials: true
 
     - name: Log in to Docker Hub
@@ -37,17 +37,20 @@ jobs:
     - name: Bump image in K8s manifests
       run: |
         TAG=${{ github.sha }}
-        # Update fastapi-rollout.yaml container image
         yq e -i ".spec.template.spec.containers[0].image = \"terrnabin/fastapi_app:$TAG\"" k8s/rollout/fastapi-rollout.yaml
-        git config user.name "github-actions[bot]"
+        git config user.name  "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add k8s/rollout/fastapi-rollout.yaml
         git commit -m "ci: bump image to $TAG"
-        # Integrate remote changes
         git pull --rebase origin main
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
 
     - name: Sync ArgoCD Application
       env:
@@ -58,10 +61,12 @@ jobs:
         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x argocd
 
-        # login using token
+        # login using token with port-forward
         ./argocd login $ARGOCD_SERVER \
           --grpc-web \
-          --auth-token $ARGOCD_TOKEN
+          --auth-token $ARGOCD_TOKEN \
+          --port-forward \
+          --port-forward-namespace argocd
 
         # sync and wait
         ./argocd app sync fastapi-app
