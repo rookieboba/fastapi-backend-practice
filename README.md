@@ -66,18 +66,21 @@
    ```
 2. **Roll out 상태 확인**  
    ```bash
-   make rollout-promote
+   make rollout-monitor
    ```
 3. **블루-그린 트래픽 전환**  
      ```bash
     docker build -t terrnabin/fastapi_app:v2 .
     docker push terrnabin/fastapi_app:v2
-    kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
-    kubectl argo rollouts get rollout fastapi-rollout -n fastapi   
+    make rollout-promote
     ```
-4. **전체 리소스 삭제 (클린업)**  
+4. **이전 버전 번복**  
    ```bash
-   make undeploy
+   make rollout-undo
+   ```
+5. **재시작**  
+   ```bash
+   make rollout-restart
    ```
 
 ![image](https://github.com/user-attachments/assets/df4693c8-43ee-49db-9f59-c701fbc6bec0)
