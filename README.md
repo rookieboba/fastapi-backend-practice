@@ -70,9 +70,8 @@
    ```
 3. **블루-그린 트래픽 전환**  
      ```bash
-    docker build -t terrnabin/fastapi_app:v2 .
-    docker push terrnabin/fastapi_app:v2
-    make rollout-promote
+    kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
+    kubectl apply -k k8s/ -n fastapi
     ```
 4. **이전 버전 번복**  
    ```bash
