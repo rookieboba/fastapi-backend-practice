@@ -18,7 +18,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 0        # fetch full history for rebase
         persist-credentials: true
 
     - name: Log in to Docker Hub
@@ -37,11 +37,13 @@ jobs:
     - name: Bump image in K8s manifests
       run: |
         TAG=${{ github.sha }}
+        # Update fastapi-rollout.yaml container image
         yq e -i ".spec.template.spec.containers[0].image = \"terrnabin/fastapi_app:$TAG\"" k8s/rollout/fastapi-rollout.yaml
-        git config user.name  "github-actions[bot]"
+        git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add k8s/rollout/fastapi-rollout.yaml
         git commit -m "ci: bump image to $TAG"
+        # Integrate remote changes
         git pull --rebase origin main
         git push
       env:
@@ -59,7 +61,7 @@ jobs:
         # login using token
         ./argocd login $ARGOCD_SERVER \
           --grpc-web \
-          --token $ARGOCD_TOKEN
+          --auth-token $ARGOCD_TOKEN
 
         # sync and wait
         ./argocd app sync fastapi-app
