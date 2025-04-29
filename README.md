@@ -68,16 +68,21 @@
    ```bash
    make rollout-monitor
    ```
-3. **블루-그린 트래픽 전환**  
+3. **새 이미지 적용**  
      ```bash
     kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
     kubectl apply -k k8s/ -n fastapi
+    make rollout-monitor
     ```
-4. **이전 버전 번복**  
+4. 버전 승격 (새 이미지 적용)
+   ```bash
+   make rollout-promote
+   ```
+5. **이전 버전 번복**  
    ```bash
    make rollout-undo
    ```
-5. **재시작**  
+6. **재시작**  
    ```bash
    make rollout-restart
    ```
