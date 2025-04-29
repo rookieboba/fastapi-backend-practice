@@ -56,7 +56,7 @@ clean:
 	@if [ "$$(docker images -q)" ]; then docker rmi -f $$(docker images -q); fi
 
 undeploy: clean
-	@Reomve and ReMake for bind
+	@echo "Remove and remake bind directory"
 	rm -rf /mnt/data/sqlite
 	mkdir -p /mnt/data/sqlite
 	@echo "[INFO] Deleting all deployed namespaces…"
