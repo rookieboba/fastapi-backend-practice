@@ -21,10 +21,12 @@ jobs:
         fetch-depth: 0
         persist-credentials: true
 
-    - name: Install yq
+    - name: Install yq (Go binary)
       run: |
-        sudo apt-get update
-        sudo apt-get install -y yq
+        YQ_VER=v4.34.1
+        wget https://github.com/mikefarah/yq/releases/download/${YQ_VER}/yq_linux_amd64 -O yq
+        chmod +x yq
+        sudo mv yq /usr/local/bin/yq
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
@@ -42,7 +44,7 @@ jobs:
     - name: Bump image in K8s manifests
       run: |
         TAG=${{ github.sha }}
-        yq e -i ".spec.template.spec.containers[0].image = \"terrnabin/fastapi_app:$TAG\"" k8s/rollout/fastapi-rollout.yaml
+        yq eval -i ".spec.template.spec.containers[0].image = \"terrnabin/fastapi_app:$TAG\"" k8s/rollout/fastapi-rollout.yaml
         git config user.name  "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add k8s/rollout/fastapi-rollout.yaml
@@ -61,8 +63,7 @@ jobs:
     - name: Verify K8s connectivity
       env:
         KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
-      run: |
-        kubectl get nodes
+      run: kubectl get nodes
 
     - name: Sync ArgoCD Application
       env:
