@@ -127,7 +127,7 @@
    kubectl argo rollouts get rollout fastapi-rollout -n fastapi
    ```
 4. **검증 후** `make rollout-promote` 로 Active 서비스 전환  
-5. **Github Action 이용** Slack Alert / Email Alert 설정 
+5. **Github Action 이용** Slack Alert / Email Alert / Sync ArgoCD 설정 
 ---
 
 ## Makefile 주요 명령
