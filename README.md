@@ -69,12 +69,12 @@
    make rollout-promote
    ```
 3. **블루-그린 트래픽 전환**  
-   ```bash
-  docker build -t terrnabin/fastapi_app:v2 .
-  docker push terrnabin/fastapi_app:v2
-  kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
-  kubectl argo rollouts get rollout fastapi-rollout -n fastapi   
-  ```
+     ```bash
+    docker build -t terrnabin/fastapi_app:v2 .
+    docker push terrnabin/fastapi_app:v2
+    kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
+    kubectl argo rollouts get rollout fastapi-rollout -n fastapi   
+    ```
 4. **전체 리소스 삭제 (클린업)**  
    ```bash
    make undeploy
