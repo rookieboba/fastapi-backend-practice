@@ -1,7 +1,6 @@
 # .github/workflows/argocd.yml
 name: CI/CD to ArgoCD
 
-# Give write permission for repo contents so the workflow can push manifest changes
 permissions:
   contents: write
 
@@ -19,7 +18,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0        # fetch full history for rebase
+        fetch-depth: 0
         persist-credentials: true
 
     - name: Log in to Docker Hub
@@ -38,25 +37,30 @@ jobs:
     - name: Bump image in K8s manifests
       run: |
         TAG=${{ github.sha }}
-        # Update fastapi-rollout.yaml container image
         yq e -i ".spec.template.spec.containers[0].image = \"terrnabin/fastapi_app:$TAG\"" k8s/rollout/fastapi-rollout.yaml
-        git config user.name "github-actions[bot]"
+        git config user.name  "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add k8s/rollout/fastapi-rollout.yaml
         git commit -m "ci: bump image to $TAG"
-        # Integrate remote changes
         git pull --rebase origin main
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Sync ArgoCD Application
-      run: |
-        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-        chmod +x argocd
-        ./argocd login ${{ secrets.ARGOCD_SERVER }} --grpc-web --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
-        ./argocd app sync fastapi-app
-        ./argocd app wait fastapi-app --health
       env:
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-        ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+        ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
+      run: |
+        # download argocd CLI
+        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        chmod +x argocd
+
+        # login using token
+        ./argocd login $ARGOCD_SERVER \
+          --grpc-web \
+          --token $ARGOCD_TOKEN
+
+        # sync and wait
+        ./argocd app sync fastapi-app
+        ./argocd app wait fastapi-app --health
