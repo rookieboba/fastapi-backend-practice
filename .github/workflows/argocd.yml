@@ -8,89 +8,78 @@ on:
   push:
     branches: [ main ]
 
-env:
-  # 공인 IP 를 시크릿으로부터 읽어서 전체 job 에 설정
-  PUBLIC_IP: ${{ secrets.PUBLIC_IP }}
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: production
 
-    env:
-      # workflow-level 환경변수
-      PUBLIC_IP: ${{ secrets.PUBLIC_IP }}
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        persist-credentials: true   # git push 를 위해 반드시 필요
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
-    - name: Show PUBLIC_IP (masked)
-      run: echo "Public IP → $PUBLIC_IP"
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push Docker image
+        run: |
+          IMAGE=terrnabin/fastapi_app
+          TAG=${{ github.sha }}
+          docker build --build-arg VERSION=$TAG -t $IMAGE:$TAG .
+          docker push $IMAGE:$TAG
 
-    - name: Build and push Docker image
-      run: |
-        IMAGE=terrnabin/fastapi_app
-        TAG=${{ github.sha }}
-        docker build --build-arg VERSION=$TAG -t $IMAGE:$TAG .
-        docker push $IMAGE:$TAG
+      - name: Bump image in K8s manifests
+        run: |
+          TAG=${{ github.sha }}
+          # yq eval -i --yaml-output 로 in-place 수정
+          yq eval -i --yaml-output \
+            '.spec.template.spec.containers[0].image = "terrnabin/fastapi_app:'"$TAG"'"' \
+            k8s/rollout/fastapi-rollout.yaml
 
-    - name: Bump image in K8s manifests
-      run: |
-        TAG=${{ github.sha }}
-        # yq in-place 할 때 --yaml-output(-y) 옵션을 반드시 추가해야 오류 없음
-        yq eval -i --yaml-output \
-          '.spec.template.spec.containers[0].image = "terrnabin/fastapi_app:'"$TAG"'"' \
-          k8s/rollout/fastapi-rollout.yaml
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          git add k8s/rollout/fastapi-rollout.yaml
+          git commit -m "ci: bump image to $TAG"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-        git config user.name  "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git pull --rebase origin main
-        git add k8s/rollout/fastapi-rollout.yaml
-        git commit -m "ci: bump image to $TAG"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up kubectl
+        id: k8s
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
 
-    - name: Set up kubectl
-      id: k8s
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'latest'
-        kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+      - name: Verify K8s connectivity
+        run: kubectl get nodes
+        env:
+          KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
 
-    - name: Verify K8s connectivity
-      run: kubectl get nodes
-      env:
-        KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
+      - name: Sync ArgoCD Application
+        run: |
+          # download argocd CLI
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
 
-    - name: Sync ArgoCD Application
-      env:
-        KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
-        ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-        ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
-      run: |
-        # download argocd CLI
-        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-        chmod +x argocd
+          # login using token via port-forward
+          ./argocd login ${{ secrets.ARGOCD_SERVER }} \
+            --grpc-web \
+            --auth-token ${{ secrets.ARGOCD_TOKEN }} \
+            --port-forward \
+            --port-forward-namespace argocd \
+            --insecure
 
-        # login using token via port-forward (insecure TLS skip)
-        ./argocd login $ARGOCD_SERVER \
-          --grpc-web \
-          --auth-token $ARGOCD_TOKEN \
-          --port-forward \
-          --port-forward-namespace argocd \
-          --insecure
-
-        # sync and wait
-        ./argocd app sync fastapi-app
-        ./argocd app wait fastapi-app --health
+          # sync and wait for healthy
+          ./argocd app sync fastapi-app
+          ./argocd app wait fastapi-app --health
+        env:
+          KUBECONFIG:    ${{ steps.k8s.outputs.kubeconfig }}
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
