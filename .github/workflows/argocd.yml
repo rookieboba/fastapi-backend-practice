@@ -1,4 +1,4 @@
-# .github/workflows/ci-cd-deploy.yml
+# .github/workflows/argocd.yml
 name: CI/CD to ArgoCD
 
 # Give write permission for repo contents so the workflow can push manifest changes
@@ -19,7 +19,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        # Ensure GITHUB_TOKEN credentials persist for push
+        fetch-depth: 0        # fetch full history for rebase
         persist-credentials: true
 
     - name: Log in to Docker Hub
@@ -44,6 +44,8 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add k8s/rollout/fastapi-rollout.yaml
         git commit -m "ci: bump image to $TAG"
+        # Integrate remote changes
+        git pull --rebase origin main
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,9 +54,9 @@ jobs:
       run: |
         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x argocd
-        ./argocd login ${{ secrets.ARGOCD_SERVER }} --grpc-web --token ${{ secrets.ARGOCD_TOKEN }}
+        ./argocd login ${{ secrets.ARGOCD_SERVER }} --grpc-web --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
         ./argocd app sync fastapi-app
         ./argocd app wait fastapi-app --health
       env:
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-        ARGOCD_PASSWORD: ${{ secrets.ARGOCD_TOKEN }}
+        ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
