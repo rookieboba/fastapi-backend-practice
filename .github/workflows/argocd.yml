@@ -52,9 +52,9 @@ jobs:
       run: |
         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x argocd
-        ./argocd login ${{ secrets.ARGOCD_SERVER }} --grpc-web --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
+        ./argocd login ${{ secrets.ARGOCD_SERVER }} --grpc-web --token ${{ secrets.ARGOCD_TOKEN }}
         ./argocd app sync fastapi-app
         ./argocd app wait fastapi-app --health
       env:
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-        ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+        ARGOCD_PASSWORD: ${{ secrets.ARGOCD_TOKEN }}
