@@ -1,5 +1,9 @@
-# .github/workflows/argocd.yml
+# .github/workflows/ci-cd-deploy.yml
 name: CI/CD to ArgoCD
+
+# Give write permission for repo contents so the workflow can push manifest changes
+permissions:
+  contents: write
 
 on:
   push:
@@ -14,6 +18,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # Ensure GITHUB_TOKEN credentials persist for push
+        persist-credentials: true
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
