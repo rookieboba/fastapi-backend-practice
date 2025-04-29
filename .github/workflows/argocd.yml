@@ -48,12 +48,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up kubectl
+      id: k8s
       uses: azure/setup-kubectl@v3
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
 
     - name: Sync ArgoCD Application
       env:
+        KUBECONFIG: ${{ steps.k8s.outputs.kubeconfig }}
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
         ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}
       run: |
