@@ -71,20 +71,22 @@ jobs:
       run: |
         curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
         chmod +x argocd
-
-# Github Action 은 퍼블릭 IP 를 꼭 써야 한다.
-# 사설망은 접근이 불가하다
+        mv argocd /usr/local/bin/
+# Github Action 은 퍼블릭 IP 를 꼭 써야 한다. -> 아니다 
+# 사설망은 접근이 불가하다 -> 당연하다
     - name: ArgoCD Login & Sync
       env:
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}  # ex) https://공인IP:10443
         ARGOCD_TOKEN:  ${{ secrets.ARGOCD_TOKEN }}   #  ArgoCD CLI 토큰 기반 인증
 
       run: |
+        set -e 
+        
         # ArgoCD 서버에 로그인 (grpc-web 방식)
-        ./argocd login $ARGOCD_SERVER --auth-token $ARGOCD_TOKEN --grpc-web
+        argocd login $ARGOCD_SERVER --auth-token $ARGOCD_TOKEN --grpc-web
 
         #  최신 YAML 상태로 앱 배포 동기화
-        ./argocd app sync fastapi-app
+        argocd app sync fastapi-app --prune --refresh
         
         #  앱이 정상 상태가 될 때까지 대기
-        ./argocd app wait fastapi-app --health --timeout 120
+        argocd app wait fastapi-app --health --timeout 120
