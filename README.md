@@ -62,10 +62,30 @@
 
 ---
 
+---
+
+## Operator Quick Start (운영자 안내)
+
+1. ** ArgoCD 및 Rollouts 설치 (최초 1회)**  
+   ```bash
+   make install
+   ```
+
+2. **FastAPI 앱 리소스 배포**  
+   ```bash
+   make deploy
+   ```
+
+3. **리소스 제거 (앱 리소스만)**  
+   ```bash
+   make undeploy
+   ```
+
+---
+
 ## CI/CD 워크플로우 (GitOps + 무중단 배포 기반)
 
-1. 개발자가 FastAPI 코드 수정 후 `rollout.yaml`의 이미지 태그(`vX.Y.Z`) 업데이트
-   → `git commit && push`로 Git 저장소에 반영
+1. 개발자가 코드 수정 + make update-image TAG=v2 수행
 
 2. GitHub Actions 실행
    - pytest 기반 단위 테스트 수행
