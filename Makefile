@@ -63,21 +63,19 @@ install-rollouts:
 	kubectl apply -n $(ARGO_NS) -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
 
 undeploy:
-	@echo "[INFO] Deleting application resources"
-	kubectl delete -k k8s/ --ignore-not-found
+	@echo "[INFO] Deleting FastAPI app rollout and services"
+	kubectl delete rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI) --ignore-not-found
+	kubectl delete svc fastapi-service-active -n $(NAMESPACE_FASTAPI) --ignore-not-found
+	kubectl delete svc fastapi-service-preview -n $(NAMESPACE_FASTAPI) --ignore-not-found
 
-	@echo "[INFO] Deleting ArgoCD and Argo Rollouts components"
-	kubectl delete ns argocd --ignore-not-found
-	kubectl delete ns $(ARGO_NS) --ignore-not-found
-	kubectl delete crd rollouts.argoproj.io experiments.argoproj.io analysisruns.analysis.argoproj.io analysistemplates.analysis.argoproj.io --ignore-not-found
+	@echo "[INFO] Deleting only app-specific ConfigMaps and PVCs"
+	kubectl delete configmap fastapi-config -n $(NAMESPACE_FASTAPI) --ignore-not-found
+	kubectl delete pvc --selector=app=fastapi -n $(NAMESPACE_FASTAPI) --ignore-not-found
 
-	@echo "[INFO] Cleaning PVCs and PVs"
-	kubectl delete pvc --all -n $(NAMESPACE_FASTAPI) --ignore-not-found
-	kubectl get pv -o name | xargs -r -n1 kubectl patch --type=merge -p='{"spec":{"claimRef":null},"metadata":{"finalizers":[]}}'
-	kubectl delete pv -l app=fastapi --ignore-not-found
+	@echo "[INFO] Skipping ArgoCD, Argo Rollouts, and CRD deletion"
 
 	@echo "[INFO] Undeploy complete"
-	kubectl get all -A -o wide
+	kubectl get all -n $(NAMESPACE_FASTAPI)
 
 reset:
 	$(MAKE) undeploy
