@@ -62,76 +62,36 @@
 
 ---
 
-## Operator Quick Start (운영자 안내)
+## CI/CD 워크플로우 (GitOps + 무중단 배포 기반)
 
-1. **클러스터에 리소스 최초 배포**  
-   ```bash
-   make deploy
-   ```
-2. **Roll out 상태 확인**  
-   ```bash
-   make rollout-monitor
-   ```
-3. **새 이미지 적용**  
-     ```bash
-     #rollout.yaml의 image: 항목을 v1 → v2로 수정
-    ```
-4. 버전 업그레이드
+1. 개발자가 FastAPI 코드 수정 후 `rollout.yaml`의 이미지 태그(`vX.Y.Z`) 업데이트
+   → `git commit && push`로 Git 저장소에 반영
+
+2. GitHub Actions 실행
+   - pytest 기반 단위 테스트 수행
+   - Docker 이미지 빌드 및 `terrnabin/fastapi_app:vX.Y.Z` 태그로 Docker Hub에 push
+
+3. ArgoCD가 Git 변경을 감지하여
+   - 변경된 `rollout.yaml` 기반으로 Preview 버전(`vX.Y.Z`) 배포
+   - 트래픽은 기존 Active(v1)에 유지된 상태
+
+4. 확인 후, 아래 명령어로 무중단 트래픽 전환 수행
    ```bash
    make rollout-promote
-   # kubectl argo rollouts promote fastapi-rollout -n fastapi
-   ```
-5. **이전 버전 번복**  
+   # 또는
+   kubectl argo rollouts promote fastapi-rollout -n fastapi
+   ---
+5. 필요시 Rollback
    ```bash
-   make rollout-undo
+   kubectl argo rollouts undo fastapi-rollout -n fastapi
    ```
-6. **재시작**  
-   ```bash
-   make rollout-restart
-   ```
+6. Slack/Email 알림 및 ArgoCD Sync 상태는 GitHub Actions에 포함됨
+
+---
+
 
 ![image](https://github.com/user-attachments/assets/df4693c8-43ee-49db-9f59-c701fbc6bec0)
 
----
-
-## CI/CD 워크플로우
-
-1. **개발 빌드**  
-2. **QA 테스트 통과 시**  
-   - Docker Hub에 이미지 태그 `vX.Y.Z` 푸시  
-3. **클러스터에 새 이미지 롤아웃**  
-   ```bash
-   docker pull terrnabin/fastapi_app:v2
-   kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
-   kubectl argo rollouts get rollout fastapi-rollout -n fastapi
-   ```
-4. **검증 후** `make rollout-promote` 로 Active 서비스 전환  
-5. **Github Action 이용** Slack Alert / Email Alert / Sync ArgoCD 설정 
----
-
----
-
-## 프로젝트 구조
-
-```
-.
-├── app/                      # FastAPI 애플리케이션 코드
-├── tests/                    # pytest 테스트 코드
-├── Dockerfile                # 프로덕션 이미지
-├── Dockerfile.dev            # 개발 이미지 (hot-reload)
-├── docker-compose.dev.yml    # 개발용 Compose 설정
-├── k8s/                      # Kubernetes 매니페스트
-│   ├── namespace.yaml
-│   ├── argo/                 # Argo Rollouts Controller 설치
-│   ├── install.yaml          # Rollouts CRD 설치
-│   ├── config/               # PV, PVC, ConfigMap, Secret
-│   ├── rollout/              # fastapi-rollout.yaml
-│   ├── hpa/                  # HPA 설정
-│   ├── ingress/              # Ingress 설정
-│   └── policy/               # NetworkPolicy
-├── Makefile                  # 배포 자동화 스크립트
-└── README.md
-```
 
 ## Makefile 주요 명령
 
