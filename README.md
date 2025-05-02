@@ -1,6 +1,7 @@
 # FastAPI Blue-Green Deployment with Argo Rollouts
 
-> 🚀 FastAPI 애플리케이션을 Kubernetes + Argo Rollouts 블루-그린 전략으로 자동 배포하는 예제
+> FastAPI 애플리케이션을 Kubernetes + Argo Rollouts 블루-그린 전략으로 자동 배포하는 예제
+> Makefile 이용 간편화
 
 ---
 
@@ -91,6 +92,23 @@
 
 ---
 
+## CI/CD 워크플로우
+
+1. **개발 빌드**  
+2. **QA 테스트 통과 시**  
+   - Docker Hub에 이미지 태그 `vX.Y.Z` 푸시  
+3. **클러스터에 새 이미지 롤아웃**  
+   ```bash
+   docker pull terrnabin/fastapi_app:v2
+   kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
+   kubectl argo rollouts get rollout fastapi-rollout -n fastapi
+   ```
+4. **검증 후** `make rollout-promote` 로 Active 서비스 전환  
+5. **Github Action 이용** Slack Alert / Email Alert / Sync ArgoCD 설정 
+---
+
+---
+
 ## 프로젝트 구조
 
 ```
@@ -112,23 +130,6 @@
 ├── Makefile                  # 배포 자동화 스크립트
 └── README.md
 ```
-
----
-
-## CI/CD 워크플로우
-
-1. **개발 빌드**  
-2. **QA 테스트 통과 시**  
-   - Docker Hub에 이미지 태그 `vX.Y.Z` 푸시  
-3. **클러스터에 새 이미지 롤아웃**  
-   ```bash
-   docker pull terrnabin/fastapi_app:v2
-   kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
-   kubectl argo rollouts get rollout fastapi-rollout -n fastapi
-   ```
-4. **검증 후** `make rollout-promote` 로 Active 서비스 전환  
-5. **Github Action 이용** Slack Alert / Email Alert / Sync ArgoCD 설정 
----
 
 ## Makefile 주요 명령
 
