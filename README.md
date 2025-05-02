@@ -74,13 +74,12 @@
    ```
 3. **새 이미지 적용**  
      ```bash
-    kubectl argo rollouts set image fastapi-rollout fastapi=terrnabin/fastapi_app:v2 -n fastapi
-    kubectl apply -k k8s/ -n fastapi
-    docker images
+     #rollout.yaml의 image: 항목을 v1 → v2로 수정
     ```
-4. 버전 승격 (새 이미지 적용)
+4. 버전 업그레이드
    ```bash
    make rollout-promote
+   # kubectl argo rollouts promote fastapi-rollout -n fastapi
    ```
 5. **이전 버전 번복**  
    ```bash
