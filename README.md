@@ -3,6 +3,9 @@
 > FastAPI 애플리케이션을 Kubernetes + Argo Rollouts 블루-그린 전략으로 자동 배포하는 예제
 > Makefile 이용 간편화
 
+![image](https://github.com/user-attachments/assets/2c819ebc-812a-4d81-8402-c596494ae6f2)
+
+
 ---
 
 ## 목차
