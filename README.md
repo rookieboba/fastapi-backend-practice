@@ -105,12 +105,18 @@
    ```bash
    kubectl argo rollouts undo fastapi-rollout -n fastapi
    ```
+
+![image](https://github.com/user-attachments/assets/df4693c8-43ee-49db-9f59-c701fbc6bec0)
+
+
 6. Slack/Email 알림 및 ArgoCD Sync 상태는 GitHub Actions에 포함됨
+
+![image](https://github.com/user-attachments/assets/abd8d57e-6bb4-49d6-8035-0cbe7b5d075b)
+![image](https://github.com/user-attachments/assets/861d5a17-29bf-420e-a171-721cb6da734e)
 
 ---
 
 
-![image](https://github.com/user-attachments/assets/df4693c8-43ee-49db-9f59-c701fbc6bec0)
 
 
 ## Makefile 주요 명령
