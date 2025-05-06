@@ -1,109 +1,109 @@
-# Makefile for FastAPI Blue-Green + Argo Rollouts 자동화
+.DEFAULT_GOAL := help
 
-# ===================
+# ========================
 # 공통 변수
-# ===================
-DOCKER_COMPOSE      := $(shell command -v docker-compose > /dev/null 2>&1 && echo docker-compose || echo docker compose)
-COMPOSE_FILE        := docker-compose.dev.yml
-ARGO_NS             ?= argo-rollouts
-NAMESPACE_FASTAPI   ?= fastapi
-ROLLOUT_NAME        ?= fastapi-rollout
-ROLLOUT_FILE        ?= manifests/rollouts/rollout.yaml
+# ========================
+ENV             ?= dev
+PROJECT_NAME    := fastapi
+RELEASE_NAME    := $(PROJECT_NAME)-$(ENV)
+NAMESPACE       := $(PROJECT_NAME)-$(ENV)
+CHART_DIR       := helm/fastapi-app
+IMAGE_REPO      := terrnabin/fastapi_app
+TAG             ?= $(shell git describe --always --dirty)
 
-# ===================
-# 개발 환경
-# ===================
+DOCKER_COMPOSE  := $(shell command -v docker-compose > /dev/null 2>&1 && echo docker-compose || echo docker compose)
 
-run-dev:
+# ========================
+# 헬프 및 정보 출력
+# ========================
+help: ## 사용 가능한 명령어 목록 출력
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+
+info: ## 현재 환경 정보 출력
+	@echo "ENV:           $(ENV)"
+	@echo "NAMESPACE:     $(NAMESPACE)"
+	@echo "TAG:           $(TAG)"
+	@echo "IMAGE_REPO:    $(IMAGE_REPO)"
+	@echo "CHART_DIR:     $(CHART_DIR)"
+	@echo "DOCKER_COMPOSE: $(DOCKER_COMPOSE)"
+
+# ========================
+# 로컬 개발 환경
+# ========================
+run-dev: ## FastAPI 로컬 개발 서버 실행
 	uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-docker-dev:
-	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) up --build -d
-	docker ps
+docker-dev: ## Docker Compose 개발 환경 실행
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up --build -d
 
-docker-down:
-	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) down
+docker-down: ## Docker Compose 환경 중지
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml down
 
-# ===================
+# ========================
 # 테스트
-# ===================
+# ========================
+test: ## 단위 테스트 실행
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
+		bash -c "PYTHONPATH=/app pytest --cov=app tests/"
 
-test:
-	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) run --rm web \
-		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=term tests/"
+test-cov: ## 커버리지 리포트 생성
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
+		bash -c "PYTHONPATH=/app pytest --cov=app --cov-report=html tests/"
 
-test-cov:
-	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) run --rm web \
-		bash -c "env PYTHONPATH=/app pytest --cov=app --cov-report=html tests/"
+# ========================
+# 이미지 태그 업데이트
+# ========================
+update-image: ## Helm values.yaml 내 이미지 태그 변경
+	@if [ -z "$(TAG)" ]; then \
+		echo "[ERROR] TAG 값을 지정하세요 (예: make update-image TAG=v2)"; exit 1; \
+	fi
+	sed -i.bak "s|image: .*|image: $(IMAGE_REPO):$(TAG)|" \
+		$(CHART_DIR)/values.yaml
+	rm -f $(CHART_DIR)/values.yaml.bak
+	@echo "이미지 태그를 $(TAG)로 업데이트 완료"
 
-db-check:
-	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) exec web \
-		bash -c "sqlite3 /app/data/db.sqlite3 '.tables'; sqlite3 /app/data/db.sqlite3 'SELECT * FROM payments;'"
+# ========================
+# 유효성 검사
+# ========================
+lint: ## Helm 템플릿 문법 검사
+	helm lint $(CHART_DIR)
 
-# ===================
-# Kubernetes 배포
-# ===================
+dry-run: ## 템플릿 렌더링 + kubeval 검사
+	helm template $(RELEASE_NAME) $(CHART_DIR) --namespace $(NAMESPACE) | kubeval --strict
 
-deploy:
-	@echo "[INFO] Applying namespace and manifests"
-	kubectl apply -f k8s/namespace.yaml
-	kubectl apply -k k8s/
-	kubectl get all -n $(NAMESPACE_FASTAPI)
-	kubectl get all -A -o wide
+# ========================
+# 배포 및 롤백
+# ========================
+deploy: ## Helm 기반 배포
+	helm upgrade --install $(RELEASE_NAME) $(CHART_DIR) \
+		--namespace $(NAMESPACE) --create-namespace
 
-install:
-	@echo "[INFO] Installing ArgoCD and Argo Rollouts"
-	$(MAKE) install-argocd
-	$(MAKE) install-rollouts
+undeploy: ## Helm 배포 삭제
+	helm uninstall $(RELEASE_NAME) -n $(NAMESPACE)
 
-install-argocd:
-	kubectl create ns argocd --dry-run=client -o yaml | kubectl apply -f -
-	kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+rollback: ## 이전 릴리스 롤백
+	helm rollback $(RELEASE_NAME) 1 -n $(NAMESPACE)
 
-install-rollouts:
-	kubectl create ns $(ARGO_NS) --dry-run=client -o yaml | kubectl apply -f -
-	kubectl apply -n $(ARGO_NS) -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
+reset-dev: ## 전체 삭제 후 재배포
+	$(MAKE) undeploy ENV=$(ENV)
+	$(MAKE) deploy ENV=$(ENV)
 
-undeploy:
-	@echo "[INFO] Deleting FastAPI rollout and services"
-	kubectl delete rollout -l app=fastapi -n $(NAMESPACE_FASTAPI) --ignore-not-found
-	kubectl delete svc -l app=fastapi -n $(NAMESPACE_FASTAPI) --ignore-not-found
-	kubectl delete configmap -l app=fastapi -n $(NAMESPACE_FASTAPI) --ignore-not-found
-	kubectl delete pvc -l app=fastapi -n $(NAMESPACE_FASTAPI) --ignore-not-found
-	@echo "[INFO] Undeploy complete"
-	kubectl get all -n $(NAMESPACE_FASTAPI)
+# ========================
+# Argo Rollouts 제어
+# ========================
+rollout-promote: ## Preview → Active 전환
+	kubectl argo rollouts promote $(RELEASE_NAME) -n $(NAMESPACE)
 
-reset-dev:
-	$(MAKE) undeploy
-	$(MAKE) deploy
-	@echo "[INFO] Reset and redeploy completed"
+rollout-monitor: ## Rollout 상태 실시간 확인
+	kubectl argo rollouts get rollout $(RELEASE_NAME) -n $(NAMESPACE) --watch
 
-# ===================
-# 이미지 버전 업데이트
-# ===================
+rollout-undo: ## 이전 버전 롤백
+	kubectl argo rollouts undo $(RELEASE_NAME) -n $(NAMESPACE)
 
-update-image:
-	@if [ -z "$$TAG" ]; then echo "[ERROR] TAG 환경변수를 설정하세요. 예: make update-image TAG=v2"; exit 1; fi
-	sed -i.bak 's|image: .*|image: terrnabin/fastapi_app:'"$$TAG"'|' $(ROLLOUT_FILE)
-	rm -f $(ROLLOUT_FILE).bak
-	@echo "[INFO] rollout.yaml 이미지 태그를 $$TAG 로 변경 완료"
+# ========================
+# CI/CD 전용 타겟
+# ========================
+ci: test lint dry-run ## CI 파이프라인용 검증 타겟
 
-# ===================
-# Rollouts 제어
-# ===================
-
-rollout-promote:
-	kubectl argo rollouts promote $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
-	kubectl argo rollouts get rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
-
-rollout-monitor:
-	kubectl argo rollouts get rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI) --watch
-
-rollout-revision:
-	kubectl argo rollouts get rollout $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI) --revision
-
-rollout-restart:
-	kubectl argo rollouts restart $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
-
-rollout-undo:
-	kubectl argo rollouts undo $(ROLLOUT_NAME) -n $(NAMESPACE_FASTAPI)
+release: update-image deploy ## GitHub Actions 릴리즈용 배포 실행
