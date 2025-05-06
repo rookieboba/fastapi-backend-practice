@@ -9,7 +9,7 @@ metadata:
 spec:
   selector:
     app: fastapi
-    track: stable
+    track: preview
   ports:
   - protocol: TCP
     port: 80
