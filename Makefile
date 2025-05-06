@@ -1,4 +1,5 @@
 .DEFAULT_GOAL := help
+.PHONY: deploy undeploy
 
 # ========================
 # 공통 변수
@@ -93,12 +94,11 @@ install:
 	echo "✅ [5/5] 포트포워딩 (ArgoCD UI: localhost:9999)"
 	kubectl port-forward svc/argocd-server -n argocd 9999:443 &
 
-deploy: ## Helm 기반 배포
-	#helm upgrade --install $(RELEASE_NAME) $(CHART_DIR) \
-		--namespace $(NAMESPACE) --create-namespace
+deploy:
+	kubectl apply -k ./k8s
 
-undeploy: ## Helm 배포 삭제
-	#helm uninstall $(RELEASE_NAME) -n $(NAMESPACE)
+undeploy:
+	kubectl delete -k ./k8s
 
 rollback: ## 이전 릴리스 롤백
 	#helm rollback $(RELEASE_NAME) 1 -n $(NAMESPACE)
