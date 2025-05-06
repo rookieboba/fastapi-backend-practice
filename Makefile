@@ -98,10 +98,8 @@ deploy:
 	kubectl apply -k ./k8s
 
 undeploy:
-	kubectl delete -k ./k8s --ignore-not-found
-
-rollback: ## 이전 릴리스 롤백
-	#helm rollback $(RELEASE_NAME) 1 -n $(NAMESPACE)
+	kubectl delete -k ./k8s
+	#kubectl delete -k ./k8s --ignore-not-found
 
 reset-dev: ## 전체 삭제 후 재배포
 	$(MAKE) undeploy ENV=$(ENV)
