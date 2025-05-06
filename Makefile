@@ -75,6 +75,24 @@ dry-run: ## 템플릿 렌더링 + kubeval 검사
 # ========================
 # 배포 및 롤백
 # ========================
+install: 
+	echo "✅ [1/5] Helm 설치 중..."
+	curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+	echo "✅ [2/5] ArgoCD 설치 중..."
+	kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+	echo "✅ [3/5] Argo Rollouts 설치 중..."
+	kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+
+	echo "✅ [4/5] Argo Rollouts CRD 적용 확인..."
+	kubectl get crd | grep rollouts.argoproj.io
+
+	echo "✅ [5/5] 포트포워딩 (ArgoCD UI: localhost:9999)"
+	kubectl port-forward svc/argocd-server -n argocd 9999:443 &
+
 deploy: ## Helm 기반 배포
 	helm upgrade --install $(RELEASE_NAME) $(CHART_DIR) \
 		--namespace $(NAMESPACE) --create-namespace
