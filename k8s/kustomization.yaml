@@ -4,9 +4,6 @@ kind: Kustomization
 #namespace: fastapi
 
 resources:
-  # 네임스페이스
-  - namespace.yaml
-
   # 스토리지 (PV, PVC)
   - config/fastapi-pv.yaml
   - config/fastapi-pvc.yaml
