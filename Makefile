@@ -99,7 +99,6 @@ deploy:
 
 undeploy:
 	kubectl delete -k ./k8s
-	#kubectl delete -k ./k8s --ignore-not-found
 
 reset-dev: ## 전체 삭제 후 재배포
 	$(MAKE) undeploy ENV=$(ENV)
