@@ -33,7 +33,7 @@ info: ## 현재 환경 정보 출력
 # 로컬 개발 환경
 # ========================
 run-dev: ## FastAPI 로컬 개발 서버 실행
-	uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+	uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
 docker-dev: ## Docker Compose 개발 환경 실행
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up --build -d
@@ -46,11 +46,11 @@ docker-down: ## Docker Compose 환경 중지
 # ========================
 test: ## 단위 테스트 실행
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
-		bash -c "PYTHONPATH=/app pytest --cov=app tests/"
+		bash -c "PYTHONPATH=/src pytest --cov=src tests/"
 
 test-cov: ## 커버리지 리포트 생성
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml run --rm web \
-		bash -c "PYTHONPATH=/app pytest --cov=app --cov-report=html tests/"
+		bash -c "PYTHONPATH=/src pytest --cov=src --cov-report=html tests/"
 
 # ========================
 # 이미지 태그 업데이트
