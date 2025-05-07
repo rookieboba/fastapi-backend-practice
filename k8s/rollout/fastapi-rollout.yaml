@@ -41,7 +41,7 @@ spec:
               memory: "256Mi"
           volumeMounts:
             - name: sqlite-storage
-              mountPath: /app/db
+              mountPath: /src/db
       volumes:
         - name: sqlite-storage
           persistentVolumeClaim:
