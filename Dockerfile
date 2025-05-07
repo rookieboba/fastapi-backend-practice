@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 작업 디렉토리 설정
-WORKDIR /app
+WORKDIR /src
 
 # 의존성 설치
 COPY requirements.txt .
@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 엔트리포인트 권한 설정 및 등록
-RUN chmod +x /app/sqlite3/docker-entrypoint.sh
-ENTRYPOINT ["/app/sqlite3/docker-entrypoint.sh"]
+RUN chmod +x /src/sqlite3/docker-entrypoint.sh
+ENTRYPOINT ["/src/sqlite3/docker-entrypoint.sh"]
 
 # 포트 오픈 및 애플리케이션 실행
 EXPOSE 8000
