@@ -50,5 +50,5 @@ spec:
     blueGreen:
       activeService: fastapi-active
       previewService: fastapi-preview
-      autoPromotionEnabled: false
-      scaleDownDelaySeconds: 30
+      #autoPromotionEnabled: false
+      #scaleDownDelaySeconds: 30
