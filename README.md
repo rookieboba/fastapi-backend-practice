@@ -27,10 +27,8 @@
   - Docker, Docker Compose  
   - Python 3.10+  
 - **클러스터 환경**  
-  - Kubernetes v1.24+ 클러스터  
-  - `kubectl` CLI  
+  - Kubernetes v1.29+ 클러스터  
   - Argo Rollouts Controller & CRD 설치  
-  - (옵션) Argo CD, Prometheus, Ingress Controller  
 
 ---
 
