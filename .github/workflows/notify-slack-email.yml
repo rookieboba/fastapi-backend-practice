@@ -75,6 +75,7 @@ jobs:
           to:             terranbin@gmail.com
           from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
           subject:        '[FastAPI][CI 알림] ${{ github.event.workflow_run.conclusion }}'
+          content_type:   html     # ✅ 이거 추가해야 html 파싱됨!!
           body: |
             <h3>📣 FastAPI CI 파이프라인 결과 알림</h3>
           
