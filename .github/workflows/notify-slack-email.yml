@@ -78,35 +78,35 @@ jobs:
           body: |
             <h3>📣 FastAPI CI 파이프라인 결과 알림</h3>
           
-            <p>✅ <strong>상태:</strong> <code>${{ github.event.workflow_run.conclusion }}</code></p>
+            <p><strong>✅ 상태:</strong> <code>${{ github.event.workflow_run.conclusion }}</code></p>
           
-            <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+            <table style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 14px;">
               <thead>
-                <tr>
-                  <th align="left">항목</th>
-                  <th align="left">값</th>
+                <tr style="background-color: #f2f2f2;">
+                  <th style="text-align: left; padding: 8px; border: 1px solid #ccc;">항목</th>
+                  <th style="text-align: left; padding: 8px; border: 1px solid #ccc;">값</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>📁 저장소</td>
-                  <td>${{ github.repository }}</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">📁 저장소</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">${{ github.repository }}</td>
                 </tr>
                 <tr>
-                  <td>🔁 워크플로우</td>
-                  <td>Notify Slack & Email</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">🔁 워크플로우</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">Notify Slack & Email</td>
                 </tr>
                 <tr>
-                  <td>🔢 실행 번호</td>
-                  <td>${{ github.event.workflow_run.run_number }}</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">🔢 실행 번호</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">${{ github.event.workflow_run.run_number }}</td>
                 </tr>
                 <tr>
-                  <td>🌿 브랜치</td>
-                  <td>${{ github.event.workflow_run.head_branch }}</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">🌿 브랜치</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">${{ github.event.workflow_run.head_branch }}</td>
                 </tr>
                 <tr>
-                  <td>👤 트리거 사용자</td>
-                  <td>${{ github.actor }}</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">👤 트리거 사용자</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">${{ github.actor }}</td>
                 </tr>
               </tbody>
             </table>
@@ -117,4 +117,5 @@ jobs:
             </a></p>
           
             <hr/>
-            <p style="font-size:0.9em;color:#777;">※ 이 알림은 GitHub Actions에서 자동 발송된 메시지입니다.</p>
+            <p style="font-size: 12px; color: #888;">※ 이 알림은 GitHub Actions에서 자동 발송된 메시지입니다.</p>
+
