@@ -76,22 +76,45 @@ jobs:
           from:           'GitHub Actions <${{ secrets.SMTP_USERNAME }}>'
           subject:        '[FastAPI][CI 알림] ${{ github.event.workflow_run.conclusion }}'
           body: |
-            📢 FastAPI CI 파이프라인 결과 알림입니다.
-
-            ✅ **상태:** ${{ github.event.workflow_run.conclusion }}
-
-            🔍 **세부 정보**
-            • 저장소: ${{ github.repository }}
-            • 워크플로우: ${{ github.workflow }}
-            • 실행 번호: #${{ github.run_number }}
-            • 브랜치: ${{ github.event.workflow_run.head_branch }}
-            • 트리거한 사용자: ${{ github.actor }}
-
-            🔗 **실행 상세 보기**
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
-
-            🕓 **실행 시각**
-            ${{ steps.timestamp.outputs.time }}
-
-            ---
-            ⚙️ 이 알림은 GitHub Actions에서 자동 발송된 메시지입니다.
+            <h3>📣 FastAPI CI 파이프라인 결과 알림</h3>
+          
+            <p>✅ <strong>상태:</strong> <code>${{ github.event.workflow_run.conclusion }}</code></p>
+          
+            <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th align="left">항목</th>
+                  <th align="left">값</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>📁 저장소</td>
+                  <td>${{ github.repository }}</td>
+                </tr>
+                <tr>
+                  <td>🔁 워크플로우</td>
+                  <td>Notify Slack & Email</td>
+                </tr>
+                <tr>
+                  <td>🔢 실행 번호</td>
+                  <td>${{ github.event.workflow_run.run_number }}</td>
+                </tr>
+                <tr>
+                  <td>🌿 브랜치</td>
+                  <td>${{ github.event.workflow_run.head_branch }}</td>
+                </tr>
+                <tr>
+                  <td>👤 트리거 사용자</td>
+                  <td>${{ github.actor }}</td>
+                </tr>
+              </tbody>
+            </table>
+          
+            <p><strong>🔍 실행 상세 보기:</strong><br/>
+            <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}">
+              실행 결과 링크
+            </a></p>
+          
+            <hr/>
+            <p style="font-size:0.9em;color:#777;">※ 이 알림은 GitHub Actions에서 자동 발송된 메시지입니다.</p>
