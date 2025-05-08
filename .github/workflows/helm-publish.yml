@@ -1,0 +1,45 @@
+name: Helm Chart Auto-Publish
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'helm/**'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-helm-chart:
+    name: Build & Deploy Helm Chart to gh-pages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - name: Package Helm chart
+        run: |
+          cd helm/fastapi
+          helm dependency update
+          helm package . -d ../../charts
+
+      - name: Generate Helm repo index
+        run: |
+          cd charts
+          helm repo index . --url https://rookieboba.github.io/fastapi-bluegreen-deploy
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./charts
+          keep_files: true
+          commit_message: "chore(helm): publish new chart version [ci skip]"
