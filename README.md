@@ -5,7 +5,6 @@
 
 ![image](https://github.com/user-attachments/assets/1e66861f-0cc5-4402-a2db-5fd4c0a3a7c0)
 
-
 ---
 
 ## 목차
@@ -114,9 +113,6 @@
 
 ---
 
-
-
-
 ## Makefile 주요 명령
 
 |명령                         |설명                                 |
@@ -147,4 +143,3 @@
 - Argo Rollouts 공식문서 https://argoproj.github.io/argo-rollouts  
 - Kubernetes Blue-Green 배포 패턴 https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#blue-green-deployments  
 - GitHub Actions CI 예제 https://docs.github.com/actions
-
