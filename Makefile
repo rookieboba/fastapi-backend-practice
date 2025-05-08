@@ -30,10 +30,8 @@ info: ## 현재 환경 정보 출력
 	@echo "DOCKER_COMPOSE: $(DOCKER_COMPOSE)"
 
 # ========================
-# 로컬 개발 환경
+# 개발 환경
 # ========================
-run-dev: ## FastAPI 로컬 개발 서버 실행
-	uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
 docker-dev: ## Docker Compose 개발 환경 실행
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up --build -d
